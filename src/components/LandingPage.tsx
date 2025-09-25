@@ -50,127 +50,111 @@ const LandingPage = ({ onAnalyze }: LandingPageProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden flex items-center justify-center">
-      {/* Subtle Background Pattern */}
-      <div className="absolute inset-0 bg-[var(--gradient-mesh)] opacity-40"></div>
-      
-      {/* Main Content Container */}
-      <div className="relative w-full max-w-3xl mx-auto px-8 py-16">
-        {/* Hero Section - Minimal */}
-        <div className="text-center mb-20 space-y-8">
-          <h1 className="text-4xl md:text-6xl font-light text-foreground tracking-wide leading-tight">
-            Research
-            <span className="block font-normal bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
-              Analysis
-            </span>
-          </h1>
-          <p className="text-lg text-muted-foreground max-w-lg mx-auto font-light leading-relaxed">
-            Transform scientific research into actionable venture insights with precision AI analysis.
-          </p>
+    <div className="min-h-screen bg-background text-foreground">
+      {/* Navigation */}
+      <nav className="fixed top-0 left-0 right-0 z-10 border-b border-border/20 bg-background/90 backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto px-8 py-6 flex items-center justify-between">
+          <div className="text-lg font-medium tracking-wide">RESEARCH-AI</div>
+          <div className="flex items-center gap-12 text-sm font-medium tracking-wide">
+            <span className="cursor-pointer hover:text-muted-foreground transition-colors">ANALYZE</span>
+            <span className="cursor-pointer hover:text-muted-foreground transition-colors">INSIGHTS</span>
+            <span className="cursor-pointer hover:text-muted-foreground transition-colors">ABOUT</span>
+          </div>
         </div>
+      </nav>
 
-        {/* Input Card - Minimal */}
-        <Card className="border border-border bg-card shadow-[var(--shadow-card)] overflow-hidden">
-          <CardContent className="p-12 space-y-12">
-            {/* Text Input Section */}
+      {/* Hero Section */}
+      <div className="flex flex-col items-center justify-center min-h-screen px-8 pt-20">
+        <div className="max-w-4xl mx-auto text-center space-y-16">
+          <div className="space-y-8">
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-light tracking-tight leading-none">
+              RESEARCH TO
+              <br />
+              VENTURE
+              <br />
+              INTELLIGENCE.
+            </h1>
+            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto font-light leading-relaxed">
+              Transform scientific breakthroughs into actionable venture insights. 
+              AI-powered analysis for the innovation economy.
+            </p>
+          </div>
+
+          {/* Input Section */}
+          <div className="max-w-2xl mx-auto space-y-8">
             <div className="space-y-6">
-              <h3 className="text-xl font-medium text-foreground">Input</h3>
-
               <Textarea
-                placeholder="Enter your research abstract or key findings...
-
-Example: Novel machine learning approach for protein folding prediction achieving 95% accuracy across diverse protein families..."
-                className="min-h-[180px] resize-none border border-border focus:border-foreground bg-input transition-all duration-300 text-base leading-relaxed p-4 rounded-lg placeholder:text-muted-foreground/50"
+                placeholder="Paste your research abstract or upload PDF below..."
+                className="min-h-[120px] resize-none border-0 border-b border-border bg-transparent text-base leading-relaxed px-0 py-4 placeholder:text-muted-foreground/60 focus-visible:ring-0 focus-visible:border-foreground transition-colors"
                 value={researchText}
                 onChange={(e) => setResearchText(e.target.value)}
               />
-
-              <div className="relative py-4">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-border"></div>
-                </div>
-                <div className="relative flex justify-center">
-                  <span className="bg-card px-4 py-1 text-xs text-muted-foreground">
-                    OR
-                  </span>
-                </div>
-              </div>
-
-              <div
-                className={`relative border border-dashed rounded-lg p-8 text-center transition-all duration-300 cursor-pointer ${
-                  dragActive
-                    ? "border-foreground bg-muted/50"
-                    : "border-border hover:border-muted-foreground"
-                }`}
-                onDragEnter={(e) => {
-                  e.preventDefault();
-                  setDragActive(true);
-                }}
-                onDragLeave={(e) => {
-                  e.preventDefault();
-                  setDragActive(false);
-                }}
-                onDragOver={(e) => e.preventDefault()}
-                onDrop={handleDrop}
-              >
-                <Upload className={`w-8 h-8 mx-auto mb-3 transition-colors ${
-                  dragActive ? 'text-foreground' : 'text-muted-foreground'
-                }`} />
-                <p className="text-sm text-muted-foreground mb-2">
-                  Drop PDF or{" "}
-                  <label className="text-foreground cursor-pointer hover:underline">
-                    browse
-                    <input
-                      type="file"
-                      accept=".pdf"
-                      className="hidden"
-                      onChange={(e) => {
-                        const file = e.target.files?.[0];
-                        if (file) handleFileUpload(file);
-                      }}
-                    />
-                  </label>
-                </p>
-                <p className="text-xs text-muted-foreground/60">Max 20MB</p>
-              </div>
-            </div>
-
-            {/* Field Selection */}
-            <div className="space-y-4">
-              <h3 className="text-xl font-medium text-foreground">Industry Focus</h3>
-              <p className="text-sm text-muted-foreground">Optional - improves analysis precision</p>
               
+              <div className="flex items-center justify-center">
+                <div
+                  className={`relative border border-dashed border-border/50 rounded-none p-8 w-full text-center transition-all duration-300 cursor-pointer ${
+                    dragActive ? "border-foreground bg-muted/10" : "hover:border-muted-foreground"
+                  }`}
+                  onDragEnter={(e) => {
+                    e.preventDefault();
+                    setDragActive(true);
+                  }}
+                  onDragLeave={(e) => {
+                    e.preventDefault();
+                    setDragActive(false);
+                  }}
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={handleDrop}
+                >
+                  <Upload className={`w-6 h-6 mx-auto mb-3 ${
+                    dragActive ? 'text-foreground' : 'text-muted-foreground'
+                  }`} />
+                  <p className="text-sm text-muted-foreground">
+                    DROP PDF OR{" "}
+                    <label className="text-foreground cursor-pointer underline underline-offset-4">
+                      BROWSE FILES
+                      <input
+                        type="file"
+                        accept=".pdf"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) handleFileUpload(file);
+                        }}
+                      />
+                    </label>
+                  </p>
+                </div>
+              </div>
+
               <Select value={selectedField} onValueChange={setSelectedField}>
-                <SelectTrigger className="h-12 border border-border focus:border-foreground bg-input transition-all duration-300">
-                  <SelectValue placeholder="Select target industry..." />
+                <SelectTrigger className="h-12 border-0 border-b border-border bg-transparent rounded-none focus:ring-0 focus:border-foreground">
+                  <SelectValue placeholder="SELECT INDUSTRY (OPTIONAL)" />
                 </SelectTrigger>
-                <SelectContent className="bg-card border border-border rounded-lg">
-                  <SelectItem value="ai">AI & Machine Learning</SelectItem>
-                  <SelectItem value="biotech">Biotechnology</SelectItem>
-                  <SelectItem value="energy">Energy & Power</SelectItem>
-                  <SelectItem value="materials">Materials Science</SelectItem>
-                  <SelectItem value="quantum">Quantum Technology</SelectItem>
-                  <SelectItem value="space">Space Technology</SelectItem>
-                  <SelectItem value="climate">Climate Tech</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
+                <SelectContent className="bg-background border border-border">
+                  <SelectItem value="ai">AI & MACHINE LEARNING</SelectItem>
+                  <SelectItem value="biotech">BIOTECHNOLOGY</SelectItem>
+                  <SelectItem value="energy">ENERGY & POWER</SelectItem>
+                  <SelectItem value="materials">MATERIALS SCIENCE</SelectItem>
+                  <SelectItem value="quantum">QUANTUM TECHNOLOGY</SelectItem>
+                  <SelectItem value="space">SPACE TECHNOLOGY</SelectItem>
+                  <SelectItem value="climate">CLIMATE TECH</SelectItem>
+                  <SelectItem value="other">OTHER</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            {/* Analyze Button */}
-            <div className="pt-8 text-center">
+            <div className="pt-8">
               <Button
                 onClick={handleAnalyze}
-                className="bg-foreground text-background hover:bg-muted-foreground px-8 py-3 font-medium transition-all duration-300 rounded-lg"
+                className="w-full bg-foreground text-background hover:bg-muted-foreground font-medium py-4 px-8 transition-colors tracking-wide"
+                size="lg"
               >
-                Analyze Research
+                ANALYZE RESEARCH
               </Button>
-              <p className="text-sm text-muted-foreground mt-4">
-                Get insights in seconds
-              </p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       </div>
     </div>
   );
