@@ -30,6 +30,9 @@ All colors MUST be HSL.
     --accent: 0 0% 15%;
     --accent-foreground: 0 0% 100%;
 
+    /* Thin Accent Color */
+    --accent-thin: 240 17% 32%;
+
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 

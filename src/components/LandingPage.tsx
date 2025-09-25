@@ -52,13 +52,13 @@ const LandingPage = ({ onAnalyze }: LandingPageProps) => {
   return (
     <div className="min-h-screen bg-background text-foreground">
       {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-10 border-b border-border/20 bg-background/90 backdrop-blur-sm">
+      <nav className="fixed top-0 left-0 right-0 z-10 border-b border-[hsl(var(--accent-thin))] bg-background/90 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-8 py-6 flex items-center justify-between">
           <div className="text-lg font-semibold tracking-wide">RESEARCH-AI</div>
           <div className="flex items-center gap-12 text-sm font-semibold tracking-wide">
-            <span className="cursor-pointer hover:text-muted-foreground transition-colors">ANALYZE</span>
-            <span className="cursor-pointer hover:text-muted-foreground transition-colors">INSIGHTS</span>
-            <span className="cursor-pointer hover:text-muted-foreground transition-colors">ABOUT</span>
+            <span className="cursor-pointer hover:text-muted-foreground transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-px after:bg-[hsl(var(--accent-thin))] after:transition-all hover:after:w-full">ANALYZE</span>
+            <span className="cursor-pointer hover:text-muted-foreground transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-px after:bg-[hsl(var(--accent-thin))] after:transition-all hover:after:w-full">INSIGHTS</span>
+            <span className="cursor-pointer hover:text-muted-foreground transition-colors relative after:absolute after:bottom-0 after:left-0 after:w-0 after:h-px after:bg-[hsl(var(--accent-thin))] after:transition-all hover:after:w-full">ABOUT</span>
           </div>
         </div>
       </nav>
@@ -85,7 +85,7 @@ const LandingPage = ({ onAnalyze }: LandingPageProps) => {
             <div className="space-y-6">
               <Textarea
                 placeholder="Paste your research abstract or upload PDF below..."
-                className="min-h-[120px] resize-none border-0 border-b border-border bg-transparent text-base leading-relaxed px-0 py-4 placeholder:text-muted-foreground/60 focus-visible:ring-0 focus-visible:border-foreground transition-colors"
+                className="min-h-[120px] resize-none border-0 border-b border-[hsl(var(--accent-thin))] bg-transparent text-base leading-relaxed px-0 py-4 placeholder:text-muted-foreground/60 focus-visible:ring-0 focus-visible:border-foreground transition-colors"
                 value={researchText}
                 onChange={(e) => setResearchText(e.target.value)}
               />
@@ -128,7 +128,7 @@ const LandingPage = ({ onAnalyze }: LandingPageProps) => {
               </div>
 
               <Select value={selectedField} onValueChange={setSelectedField}>
-                <SelectTrigger className="h-12 border-0 border-b border-border bg-transparent rounded-none focus:ring-0 focus:border-foreground">
+                <SelectTrigger className="h-12 border-0 border-b border-[hsl(var(--accent-thin))] bg-transparent rounded-none focus:ring-0 focus:border-foreground">
                   <SelectValue placeholder="SELECT INDUSTRY (OPTIONAL)" />
                 </SelectTrigger>
                 <SelectContent className="bg-background border border-border">
