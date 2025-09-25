@@ -54,8 +54,8 @@ const LandingPage = ({ onAnalyze }: LandingPageProps) => {
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-10 border-b border-border/20 bg-background/90 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-8 py-6 flex items-center justify-between">
-          <div className="text-lg font-medium tracking-wide">RESEARCH-AI</div>
-          <div className="flex items-center gap-12 text-sm font-medium tracking-wide">
+          <div className="text-lg font-semibold tracking-wide">RESEARCH-AI</div>
+          <div className="flex items-center gap-12 text-sm font-semibold tracking-wide">
             <span className="cursor-pointer hover:text-muted-foreground transition-colors">ANALYZE</span>
             <span className="cursor-pointer hover:text-muted-foreground transition-colors">INSIGHTS</span>
             <span className="cursor-pointer hover:text-muted-foreground transition-colors">ABOUT</span>
@@ -67,14 +67,14 @@ const LandingPage = ({ onAnalyze }: LandingPageProps) => {
       <div className="flex flex-col items-center justify-center min-h-screen px-8 pt-20">
         <div className="max-w-4xl mx-auto text-center space-y-16">
           <div className="space-y-8">
-            <h1 className="text-5xl md:text-7xl lg:text-8xl font-light tracking-tight leading-none">
+            <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold tracking-tight leading-none">
               RESEARCH TO
               <br />
               VENTURE
               <br />
               INTELLIGENCE.
             </h1>
-            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto font-light leading-relaxed">
+            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto font-medium leading-relaxed">
               Transform scientific breakthroughs into actionable venture insights. 
               AI-powered analysis for the innovation economy.
             </p>
@@ -147,7 +147,7 @@ const LandingPage = ({ onAnalyze }: LandingPageProps) => {
             <div className="pt-8">
               <Button
                 onClick={handleAnalyze}
-                className="w-full bg-foreground text-background hover:bg-muted-foreground font-medium py-4 px-8 transition-colors tracking-wide"
+                className="w-full bg-foreground text-background hover:bg-muted-foreground font-semibold py-4 px-8 transition-colors tracking-wider"
                 size="lg"
               >
                 ANALYZE RESEARCH
