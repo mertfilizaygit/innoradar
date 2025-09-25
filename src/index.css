@@ -8,27 +8,27 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Minimalist Black Theme */
-    --background: 0 0% 0%;
-    --foreground: 0 0% 100%;
+    /* White Theme */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 0%;
 
-    --card: 0 0% 3%;
-    --card-foreground: 0 0% 100%;
+    --card: 0 0% 98%;
+    --card-foreground: 0 0% 0%;
 
-    --popover: 0 0% 3%;
-    --popover-foreground: 0 0% 100%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 0%;
 
-    --primary: 0 0% 100%;
-    --primary-foreground: 0 0% 0%;
+    --primary: 220 100% 50%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 10%;
-    --secondary-foreground: 0 0% 80%;
+    --secondary: 0 0% 95%;
+    --secondary-foreground: 0 0% 20%;
 
-    --muted: 0 0% 8%;
-    --muted-foreground: 0 0% 60%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 40%;
 
-    --accent: 0 0% 15%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 0 0% 92%;
+    --accent-foreground: 0 0% 0%;
 
     /* Thin Accent Color */
     --accent-thin: 240 17% 32%;
@@ -36,43 +36,43 @@ All colors MUST be HSL.
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 12%;
-    --input: 0 0% 8%;
-    --ring: 0 0% 100%;
+    --border: 0 0% 88%;
+    --input: 0 0% 96%;
+    --ring: 220 100% 50%;
 
-    /* Minimalist Platform Colors */
-    --vc-primary: 0 0% 100%;
-    --vc-primary-light: 0 0% 90%;
-    --vc-secondary: 0 0% 15%;
-    --vc-accent: 0 0% 25%;
-    --vc-success: 0 0% 60%;
-    --vc-warning: 0 0% 70%;
+    /* VC Platform Colors - Updated for white theme */
+    --vc-primary: 220 100% 50%;
+    --vc-primary-light: 220 100% 60%;
+    --vc-secondary: 200 100% 45%;
+    --vc-accent: 160 100% 40%;
+    --vc-success: 120 100% 40%;
+    --vc-warning: 45 100% 50%;
     --vc-deep-black: 0 0% 0%;
     
-    /* Chart Colors - Minimal Grays */
-    --vc-chart-1: 0 0% 80%;
-    --vc-chart-2: 0 0% 60%;
-    --vc-chart-3: 0 0% 40%;
-    --vc-chart-4: 0 0% 30%;
-    --vc-chart-5: 0 0% 20%;
-    --vc-chart-6: 0 0% 15%;
+    /* Chart Colors - Colorful */
+    --vc-chart-1: 220 100% 50%;
+    --vc-chart-2: 200 100% 45%;
+    --vc-chart-3: 160 100% 40%;
+    --vc-chart-4: 280 100% 50%;
+    --vc-chart-5: 30 100% 50%;
+    --vc-chart-6: 340 100% 50%;
 
-    /* Minimal Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(0 0% 10%), hsl(0 0% 20%));
-    --gradient-hero: linear-gradient(135deg, hsl(0 0% 0%) 0%, hsl(0 0% 5%) 50%, hsl(0 0% 0%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 3% / 0.8), hsl(0 0% 8% / 0.5));
-    --gradient-glass: linear-gradient(135deg, hsl(0 0% 100% / 0.03), hsl(0 0% 100% / 0.01));
-    --gradient-accent: linear-gradient(135deg, hsl(0 0% 15%), hsl(0 0% 25%));
-    --gradient-subtle: linear-gradient(135deg, hsl(0 0% 5%), hsl(0 0% 10%));
-    --gradient-mesh: radial-gradient(circle at 30% 70%, hsl(0 0% 8% / 0.4) 0%, transparent 50%), 
-                     radial-gradient(circle at 70% 30%, hsl(0 0% 12% / 0.3) 0%, transparent 50%);
+    /* White Theme Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(220 100% 50%), hsl(200 100% 45%));
+    --gradient-hero: linear-gradient(135deg, hsl(220 100% 50%) 0%, hsl(200 100% 45%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 100% / 0.8), hsl(0 0% 98% / 0.9));
+    --gradient-glass: linear-gradient(135deg, hsl(0 0% 100% / 0.8), hsl(0 0% 100% / 0.4));
+    --gradient-accent: linear-gradient(135deg, hsl(220 100% 50%), hsl(160 100% 40%));
+    --gradient-subtle: linear-gradient(135deg, hsl(0 0% 98%), hsl(0 0% 95%));
+    --gradient-mesh: radial-gradient(circle at 30% 70%, hsl(220 100% 50% / 0.1) 0%, transparent 50%), 
+                     radial-gradient(circle at 70% 30%, hsl(200 100% 45% / 0.1) 0%, transparent 50%);
 
-    /* Minimal Shadows */
-    --shadow-card: 0 4px 20px hsl(0 0% 0% / 0.5);
-    --shadow-lg: 0 10px 25px -3px hsl(0 0% 0% / 0.6);
-    --shadow-glow: 0 0 30px hsl(0 0% 100% / 0.1);
-    --shadow-subtle: 0 2px 10px hsl(0 0% 0% / 0.3);
-    --shadow-glass: inset 0 1px 0 hsl(0 0% 100% / 0.02);
+    /* White Theme Shadows */
+    --shadow-card: 0 4px 20px hsl(0 0% 0% / 0.1);
+    --shadow-lg: 0 10px 25px -3px hsl(0 0% 0% / 0.15);
+    --shadow-glow: 0 0 30px hsl(220 100% 50% / 0.2);
+    --shadow-subtle: 0 2px 10px hsl(0 0% 0% / 0.05);
+    --shadow-glass: inset 0 1px 0 hsl(0 0% 100% / 0.8);
 
     /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -80,14 +80,14 @@ All colors MUST be HSL.
 
     --radius: 0.5rem;
 
-    --sidebar-background: 210 40% 98%;
-    --sidebar-foreground: 215 16% 47%;
-    --sidebar-primary: 203 89% 53%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 0 0% 20%;
+    --sidebar-primary: 220 100% 50%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 210 40% 96%;
-    --sidebar-accent-foreground: 222 47% 11%;
-    --sidebar-border: 214 32% 91%;
-    --sidebar-ring: 203 89% 53%;
+    --sidebar-accent: 0 0% 96%;
+    --sidebar-accent-foreground: 0 0% 0%;
+    --sidebar-border: 0 0% 88%;
+    --sidebar-ring: 220 100% 50%;
   }
 
   .dark {
