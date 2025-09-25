@@ -2,6 +2,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
+import { type AnalysisResult } from "@/services/claudeApi";
+
 import { 
   Download, 
   TrendingUp, 
@@ -18,9 +20,15 @@ import { useToast } from "@/hooks/use-toast";
 
 interface DashboardProps {
   onBack: () => void;
+  analysisResult: AnalysisResult;
+  analysisData: {
+    text: string;
+    field?: string;
+    file?: File;
+  } | null;
 }
 
-const Dashboard = ({ onBack }: DashboardProps) => {
+const Dashboard = ({ onBack, analysisResult, analysisData }: DashboardProps) => {
   const { toast } = useToast();
 
   const handleExport = () => {
