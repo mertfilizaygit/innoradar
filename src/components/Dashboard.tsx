@@ -46,9 +46,12 @@ const Dashboard = ({ onBack }: DashboardProps) => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/30">
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/10 to-background relative overflow-hidden">
+      {/* Background Mesh */}
+      <div className="absolute inset-0 bg-[var(--gradient-mesh)] opacity-40"></div>
+      
       {/* Header */}
-      <div className="bg-white border-b shadow-sm sticky top-0 z-10">
+      <div className="bg-white/80 backdrop-blur-xl border-b border-white/30 shadow-sm sticky top-0 z-10 relative">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -65,10 +68,11 @@ const Dashboard = ({ onBack }: DashboardProps) => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="container mx-auto px-4 py-8 relative">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Summary Card */}
-          <Card className="lg:col-span-2 shadow-lg">
+          <Card className="lg:col-span-2 bg-white/80 backdrop-blur-xl border-0 shadow-2xl ring-1 ring-white/20 overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
             <CardHeader className="pb-4">
               <div className="flex items-start justify-between">
                 <CardTitle className="text-xl text-vc-primary">Research Summary</CardTitle>
@@ -99,7 +103,8 @@ const Dashboard = ({ onBack }: DashboardProps) => {
           </Card>
 
           {/* Overall Score */}
-          <Card className="shadow-lg">
+          <Card className="bg-white/80 backdrop-blur-xl border-0 shadow-2xl ring-1 ring-white/20 overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-vc-success/5 to-transparent"></div>
             <CardHeader className="text-center pb-2">
               <CardTitle className="text-vc-primary">Investment Score</CardTitle>
             </CardHeader>

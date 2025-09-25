@@ -50,15 +50,22 @@ const LandingPage = ({ onAnalyze }: LandingPageProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-muted/50">
+    <div className="min-h-screen bg-gradient-to-br from-background via-muted/20 to-background relative overflow-hidden">
+      {/* Background Mesh */}
+      <div className="absolute inset-0 bg-[var(--gradient-mesh)] opacity-60"></div>
+      
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-vc-primary to-vc-secondary">
-        <div className="absolute inset-0 bg-black/20"></div>
-        <div className="relative container mx-auto px-4 py-24 text-center">
-          <h1 className="text-5xl font-bold text-white mb-6">
-            Turn Research into Startup Insights
+      <div className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-vc-primary/90 via-vc-secondary/85 to-vc-accent/80 backdrop-blur-3xl"></div>
+        <div className="absolute inset-0 bg-black/10"></div>
+        <div className="relative container mx-auto px-4 py-32 text-center">
+          <h1 className="text-6xl md:text-7xl font-bold text-white mb-8 tracking-tight">
+            Turn Research into
+            <span className="block bg-gradient-to-r from-white to-white/70 bg-clip-text text-transparent">
+              Startup Insights
+            </span>
           </h1>
-          <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
+          <p className="text-xl md:text-2xl text-white/85 mb-12 max-w-3xl mx-auto leading-relaxed">
             AI-powered VC analysis for scientific research commercialization. Evaluate startup potential, 
             market opportunities, and investment readiness in minutes.
           </p>
@@ -80,22 +87,23 @@ const LandingPage = ({ onAnalyze }: LandingPageProps) => {
       </div>
 
       {/* Input Section */}
-      <div className="container mx-auto px-4 py-16">
-        <div className="max-w-5xl mx-auto">
-          <Card className="border-0 shadow-xl bg-white/95 backdrop-blur-sm">
-            <CardContent className="p-10">
+      <div className="container mx-auto px-4 py-20 relative">
+        <div className="max-w-6xl mx-auto">
+          <Card className="border-0 bg-white/80 backdrop-blur-xl shadow-2xl ring-1 ring-white/20 overflow-hidden">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent"></div>
+            <CardContent className="p-12 relative">
               <div className="grid lg:grid-cols-2 gap-12">
                 {/* Text Input */}
                 <div className="space-y-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-8 h-8 bg-vc-primary rounded-full flex items-center justify-center text-white font-bold text-sm">1</div>
-                    <h3 className="text-2xl font-semibold text-vc-primary">Research Abstract</h3>
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-10 h-10 bg-gradient-to-r from-vc-primary to-vc-primary-light rounded-xl flex items-center justify-center text-white font-bold shadow-lg">1</div>
+                    <h3 className="text-3xl font-bold bg-gradient-to-r from-vc-primary to-vc-secondary bg-clip-text text-transparent">Research Abstract</h3>
                   </div>
                   <Textarea
                     placeholder="Paste your research abstract, paper summary, or key findings here...
 
 Example: Novel machine learning approach for protein folding prediction achieving 95% accuracy across diverse protein families..."
-                    className="min-h-[240px] resize-none border-2 focus:border-vc-secondary transition-all duration-300 text-base leading-relaxed p-4"
+                    className="min-h-[280px] resize-none border-2 border-muted/40 focus:border-vc-secondary/60 bg-white/60 backdrop-blur-sm transition-all duration-500 text-base leading-relaxed p-6 rounded-xl shadow-inner hover:shadow-lg focus:bg-white/80"
                     value={researchText}
                     onChange={(e) => setResearchText(e.target.value)}
                   />
@@ -106,16 +114,16 @@ Example: Novel machine learning approach for protein folding prediction achievin
 
                 {/* File Upload */}
                 <div className="space-y-6">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="w-8 h-8 bg-vc-secondary rounded-full flex items-center justify-center text-white font-bold text-sm">2</div>
-                    <h3 className="text-2xl font-semibold text-vc-primary">Upload PDF</h3>
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="w-10 h-10 bg-gradient-to-r from-vc-secondary to-vc-accent rounded-xl flex items-center justify-center text-white font-bold shadow-lg">2</div>
+                    <h3 className="text-3xl font-bold bg-gradient-to-r from-vc-secondary to-vc-accent bg-clip-text text-transparent">Upload PDF</h3>
                   </div>
                   <div
-                    className={`relative border-2 border-dashed rounded-xl p-12 text-center transition-all duration-300 ${
+                    className={`relative border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-500 ${
                       dragActive
-                        ? "border-vc-secondary bg-gradient-to-br from-vc-accent/20 to-vc-secondary/10 scale-[1.02]"
-                        : "border-muted-foreground/30 hover:border-vc-secondary/60 hover:bg-muted/20"
-                    }`}
+                        ? "border-vc-secondary bg-gradient-to-br from-vc-accent/30 to-vc-secondary/20 scale-[1.03] shadow-2xl shadow-vc-secondary/20"
+                        : "border-muted-foreground/20 hover:border-vc-secondary/60 hover:bg-gradient-to-br hover:from-white/50 hover:to-vc-primary/5 hover:shadow-xl"
+                    } backdrop-blur-sm bg-white/30`}
                     onDragEnter={(e) => {
                       e.preventDefault();
                       setDragActive(true);
@@ -172,24 +180,24 @@ Example: Novel machine learning approach for protein folding prediction achievin
               </div>
 
               {/* Field Selection */}
-              <div className="mt-12 space-y-6 p-8 bg-gradient-to-r from-muted/30 to-muted/10 rounded-xl border">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-8 h-8 bg-vc-accent rounded-full flex items-center justify-center text-white font-bold text-sm">3</div>
+              <div className="mt-16 space-y-8 p-10 bg-gradient-to-r from-white/40 to-white/20 rounded-2xl border border-white/30 backdrop-blur-sm shadow-inner">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-10 h-10 bg-gradient-to-r from-vc-accent to-vc-success rounded-xl flex items-center justify-center text-white font-bold shadow-lg">3</div>
                   <div>
-                    <label className="text-xl font-semibold text-vc-primary block">
+                    <label className="text-3xl font-bold bg-gradient-to-r from-vc-accent to-vc-success bg-clip-text text-transparent block">
                       Application Area
                     </label>
-                    <span className="text-sm text-muted-foreground">(Optional - helps improve analysis accuracy)</span>
+                    <span className="text-base text-muted-foreground/80">(Optional - helps improve analysis accuracy)</span>
                   </div>
                 </div>
                 <p className="text-muted-foreground mb-4">
                   Select the industry where the end product will operate. This helps our AI provide more targeted market analysis and competitive insights.
                 </p>
                 <Select value={selectedField} onValueChange={setSelectedField}>
-                  <SelectTrigger className="h-12 border-2 focus:border-vc-secondary bg-white text-base">
+                  <SelectTrigger className="h-14 border-2 border-muted/40 focus:border-vc-secondary/60 bg-white/60 backdrop-blur-sm text-base rounded-xl shadow-inner hover:shadow-lg transition-all duration-300 focus:bg-white/80">
                     <SelectValue placeholder="Choose the target application area..." />
                   </SelectTrigger>
-                  <SelectContent className="bg-white border-2">
+                  <SelectContent className="bg-white/95 backdrop-blur-xl border-2 border-white/30 rounded-xl shadow-2xl">
                     <SelectItem value="ai">🤖 AI & Machine Learning</SelectItem>
                     <SelectItem value="biotech">🧬 Biotechnology</SelectItem>
                     <SelectItem value="energy">⚡ Energy & Power Systems</SelectItem>
@@ -203,16 +211,16 @@ Example: Novel machine learning approach for protein folding prediction achievin
               </div>
 
               {/* Analyze Button */}
-              <div className="mt-12 text-center">
+              <div className="mt-16 text-center">
                 <Button
                   onClick={handleAnalyze}
                   size="lg"
-                  className="bg-gradient-to-r from-vc-primary to-vc-secondary hover:from-vc-primary-light hover:to-vc-secondary/90 text-white px-12 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
+                  className="bg-gradient-to-r from-vc-primary via-vc-secondary to-vc-accent hover:from-vc-primary-light hover:via-vc-secondary/90 hover:to-vc-accent/90 text-white px-16 py-6 text-xl font-bold shadow-2xl hover:shadow-[var(--shadow-glow)] transition-all duration-500 transform hover:scale-[1.05] rounded-2xl border border-white/20"
                 >
-                  <FileText className="w-6 h-6 mr-3" />
+                  <FileText className="w-7 h-7 mr-4" />
                   Analyze Research Potential
                 </Button>
-                <p className="text-sm text-muted-foreground mt-4">
+                <p className="text-base text-muted-foreground/80 mt-6 font-medium">
                   Get comprehensive VC-style analysis in under 30 seconds
                 </p>
               </div>
