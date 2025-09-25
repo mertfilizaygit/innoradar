@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 import RadarChart from "./RadarChart";
 import { useToast } from "@/hooks/use-toast";
+import { useEffect } from "react";
 
 interface DashboardProps {
   onBack: () => void;
@@ -31,6 +32,25 @@ interface DashboardProps {
 const Dashboard = ({ onBack, analysisResult, analysisData }: DashboardProps) => {
   const { toast } = useToast();
 
+  // Debug logs
+  useEffect(() => {
+    console.log("Dashboard rendered with analysisResult:", analysisResult);
+    console.log("analysisData:", analysisData);
+    
+    if (!analysisResult) {
+      console.error("❌ analysisResult is undefined! This should not happen.");
+    } else {
+      console.log("✅ analysisResult is valid:", {
+        marketAnalysis: !!analysisResult.marketAnalysis,
+        technicalFeasibility: !!analysisResult.technicalFeasibility,
+        commercialPotential: !!analysisResult.commercialPotential,
+        teamAndExecution: !!analysisResult.teamAndExecution,
+        overallScore: analysisResult.overallScore,
+        investmentRecommendation: analysisResult.investmentRecommendation
+      });
+    }
+  }, [analysisResult, analysisData]);
+
   const handleExport = () => {
     toast({
       title: "Export initiated",
@@ -38,21 +58,80 @@ const Dashboard = ({ onBack, analysisResult, analysisData }: DashboardProps) => 
     });
   };
 
-  // Mock data for demonstration
+  // Convert API scores from 0-100 to 0-10 scale for display
+  const normalizeScore = (score: number): number => {
+    return parseFloat((score / 10).toFixed(1));
+  };
+
+  // Get investment recommendation badge variant
+  const getRecommendationVariant = (recommendation: string): string => {
+    const rec = recommendation.toLowerCase();
+    if (rec.includes("strong buy")) return "bg-emerald-100 text-emerald-700 border-emerald-200";
+    if (rec.includes("buy")) return "bg-green-100 text-green-700 border-green-200";
+    if (rec.includes("hold")) return "bg-amber-100 text-amber-700 border-amber-200";
+    if (rec.includes("weak")) return "bg-orange-100 text-orange-700 border-orange-200";
+    return "bg-red-100 text-red-700 border-red-200"; // PASS
+  };
+
+  // Get overall score text variant
+  const getScoreVariant = (score: number): string => {
+    if (score >= 80) return "text-emerald-600";
+    if (score >= 70) return "text-green-600";
+    if (score >= 60) return "text-amber-600";
+    if (score >= 50) return "text-orange-600";
+    return "text-red-600";
+  };
+
+  // Get a title from the research text (first 50 chars)
+  const getResearchTitle = (): string => {
+    if (!analysisData?.text) return "Research Analysis";
+    const text = analysisData.text.trim();
+    const firstLine = text.split('\n')[0];
+    return firstLine.length > 50 ? `${firstLine.substring(0, 50)}...` : firstLine;
+  };
+
+  // analysisResult undefined ise hata göster
+  if (!analysisResult) {
+    console.error("❌ CRITICAL: analysisResult is undefined");
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background to-muted/30 flex items-center justify-center">
+        <Card className="max-w-md mx-auto shadow-lg">
+          <CardHeader>
+            <CardTitle className="text-red-600 flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5" />
+              Analysis Error
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-slate-600">
+              No analysis results available. Please go back and try analyzing your research again.
+            </p>
+            <Button onClick={onBack} className="w-full">
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Back to Input
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // Prepare radar chart data from analysis result
   const scores = [
-    { category: "Tech Readiness", score: 7.2, max: 10 },
-    { category: "Market Size", score: 8.5, max: 10 },
-    { category: "Scalability", score: 6.8, max: 10 },
-    { category: "Team Potential", score: 5.9, max: 10 },
-    { category: "Competitive Edge", score: 7.8, max: 10 },
-    { category: "Impact", score: 8.9, max: 10 },
+    { category: "Market Size", score: normalizeScore(analysisResult.marketAnalysis?.score || 0), max: 10 },
+    { category: "Tech Readiness", score: normalizeScore(analysisResult.technicalFeasibility?.score || 0), max: 10 },
+    { category: "Scalability", score: normalizeScore(analysisResult.commercialPotential?.score || 0), max: 10 },
+    { category: "Team Potential", score: normalizeScore(analysisResult.teamAndExecution?.score || 0), max: 10 },
+    { category: "Impact", score: normalizeScore(analysisResult.overallScore || 0), max: 10 },
   ];
 
-  const competitors = [
-    { name: "DeepMind", category: "AI Research", funding: "$1.7B" },
-    { name: "Atomwise", category: "Drug Discovery", funding: "$174M" },
-    { name: "Exscientia", category: "AI Pharma", funding: "$525M" },
-  ];
+  console.log("🎯 Rendering dashboard with valid data:", {
+    hasMarketAnalysis: !!analysisResult.marketAnalysis,
+    hasTechnicalFeasibility: !!analysisResult.technicalFeasibility,
+    hasCommercialPotential: !!analysisResult.commercialPotential,
+    hasTeamAndExecution: !!analysisResult.teamAndExecution,
+    scoresCalculated: scores.length
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/30">
@@ -64,7 +143,7 @@ const Dashboard = ({ onBack, analysisResult, analysisData }: DashboardProps) => 
               <Button 
                 variant="outline" 
                 onClick={onBack}
-                className="group border-indigo-200 hover:bg-indigo-50 hover:border-indigo-300 transition-all duration-200"
+                className="group border-indigo-200 bg-indigo-50 hover:bg-indigo-100 hover:border-indigo-300 transition-all duration-200"
               >
                 <ArrowLeft className="w-4 h-4 mr-2 transition-transform group-hover:-translate-x-0.5" />
                 Back to Input
@@ -89,44 +168,51 @@ const Dashboard = ({ onBack, analysisResult, analysisData }: DashboardProps) => 
             <CardHeader className="pb-4">
               <div className="flex items-start justify-between">
                 <CardTitle className="text-xl text-slate-800">Research Summary</CardTitle>
-                <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 border-emerald-200">
-                  High Potential
+                <Badge variant="secondary" className={getRecommendationVariant(analysisResult.investmentRecommendation || "HOLD")}>
+                  {analysisResult.investmentRecommendation || "HOLD"}
                 </Badge>
               </div>
             </CardHeader>
             <CardContent className="space-y-4">
               <h3 className="font-semibold text-lg text-slate-800">
-                "AI-Powered Protein Folding Prediction Platform"
+                "{getResearchTitle()}"
               </h3>
               <p className="text-slate-600 leading-relaxed">
-                Revolutionary machine learning approach for predicting 3D protein structures with 95% accuracy. 
-                The research introduces novel transformer architectures that significantly outperform existing methods, 
-                reducing computation time from weeks to hours while maintaining high precision.
+                {analysisResult.marketAnalysis?.summary || "Market analysis summary not available."}
               </p>
               <div className="space-y-2">
-                <h4 className="font-medium text-slate-800">Key Innovations:</h4>
+                <h4 className="font-medium text-slate-800">Key Insights:</h4>
                 <ul className="list-disc pl-6 space-y-1 text-sm text-slate-600">
-                  <li>Novel attention mechanism for protein sequence analysis</li>
-                  <li>95% prediction accuracy across diverse protein families</li>
-                  <li>1000x faster than traditional molecular dynamics simulations</li>
-                  <li>Validated on 50,000+ experimental structures</li>
+                  {analysisResult.keyInsights && analysisResult.keyInsights.length > 0 ? (
+                    analysisResult.keyInsights.map((insight, index) => (
+                      <li key={index}>{insight}</li>
+                    ))
+                  ) : (
+                    <li>No key insights available.</li>
+                  )}
                 </ul>
               </div>
             </CardContent>
           </Card>
 
-          {/* Overall Score */}
+          {/* Next Steps (replacing Investment Score) */}
           <Card className="shadow-lg">
             <CardHeader className="text-center pb-2">
-              <CardTitle className="text-vc-primary">Investment Score</CardTitle>
+              <CardTitle className="text-vc-primary">Next Steps</CardTitle>
             </CardHeader>
-            <CardContent className="text-center">
-              <div className="text-4xl font-bold text-vc-success mb-2">7.4</div>
-              <div className="text-sm text-muted-foreground mb-4">out of 10</div>
-              <Progress value={74} className="mb-4" />
-              <Badge variant="secondary" className="bg-vc-success/10 text-vc-success border-vc-success/20">
-                Strong Investment Opportunity
-              </Badge>
+            <CardContent className="space-y-3">
+              {analysisResult.nextSteps && analysisResult.nextSteps.length > 0 ? (
+                analysisResult.nextSteps.map((step, index) => (
+                  <div key={index} className="flex items-start gap-2">
+                    <div className="bg-indigo-100 text-indigo-700 rounded-full w-5 h-5 flex items-center justify-center text-xs font-bold mt-0.5">
+                      {index + 1}
+                    </div>
+                    <p className="text-sm text-slate-700">{step}</p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-slate-500">No next steps available.</p>
+              )}
             </CardContent>
           </Card>
 
@@ -165,14 +251,15 @@ const Dashboard = ({ onBack, analysisResult, analysisData }: DashboardProps) => 
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
-                <h4 className="font-semibold text-slate-800">ProteinAI Platform</h4>
+                <h4 className="font-semibold text-slate-800">Commercial Opportunity</h4>
                 <p className="text-sm text-slate-600 leading-relaxed">
-                  SaaS platform for pharmaceutical companies to accelerate drug discovery through 
-                  AI-powered protein structure prediction.
+                  {analysisResult.commercialPotential?.summary || "Commercial potential summary not available."}
                 </p>
                 <div className="space-y-2">
-                  <Badge variant="outline" className="border-indigo-200 text-indigo-700">B2B SaaS</Badge>
-                  <Badge variant="outline" className="border-purple-200 text-purple-700">API Platform</Badge>
+                  <h5 className="text-sm font-medium text-slate-700">Potential Revenue Model</h5>
+                  <p className="text-sm text-slate-600">
+                    {analysisResult.commercialPotential?.revenueModel || "Revenue model not specified."}
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -188,20 +275,29 @@ const Dashboard = ({ onBack, analysisResult, analysisData }: DashboardProps) => 
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-slate-700">Total Addressable Market</span>
-                <span className="font-bold text-emerald-600">$24.8B</span>
+                <span className="text-sm font-medium text-slate-700">Market Size</span>
+                <span className="font-bold text-emerald-600">
+                  {analysisResult.marketAnalysis?.marketSize || "N/A"}
+                </span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-slate-700">Serviceable Market</span>
-                <span className="font-bold text-slate-800">$4.2B</span>
+                <span className="text-sm font-medium text-slate-700">Scalability</span>
+                <span className="font-bold text-slate-800">
+                  {analysisResult.commercialPotential?.scalability || "N/A"}
+                </span>
               </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-slate-700">Market Growth Rate</span>
-                <span className="font-bold text-emerald-600">15.2% CAGR</span>
+              <div className="space-y-2">
+                <h5 className="text-sm font-medium text-slate-700">Market Trends</h5>
+                <ul className="text-xs text-slate-500 space-y-1">
+                  {analysisResult.marketAnalysis?.trends && analysisResult.marketAnalysis.trends.length > 0 ? (
+                    analysisResult.marketAnalysis.trends.map((trend, index) => (
+                      <li key={index}>• {trend}</li>
+                    ))
+                  ) : (
+                    <li>• No market trends available</li>
+                  )}
+                </ul>
               </div>
-              <p className="text-xs text-slate-500 mt-2 leading-relaxed">
-                Drug discovery market driven by increasing R&D investments and AI adoption in pharma.
-              </p>
             </CardContent>
           </Card>
 
@@ -210,19 +306,16 @@ const Dashboard = ({ onBack, analysisResult, analysisData }: DashboardProps) => 
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-slate-800">
                 <Building2 className="w-5 h-5" />
-                Key Competitors
+                Competition
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {competitors.map((competitor, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-slate-50 rounded-lg">
-                  <div>
-                    <div className="font-medium text-sm text-slate-800">{competitor.name}</div>
-                    <div className="text-xs text-slate-600">{competitor.category}</div>
-                  </div>
-                  <Badge variant="outline" className="text-xs border-slate-300">{competitor.funding}</Badge>
+              <div className="p-3 bg-slate-50 rounded-lg">
+                <div className="font-medium text-sm text-slate-800 mb-2">Competitive Landscape</div>
+                <div className="text-sm text-slate-600">
+                  {analysisResult.marketAnalysis?.competition || "Competitive analysis not available."}
                 </div>
-              ))}
+              </div>
             </CardContent>
           </Card>
 
@@ -239,57 +332,67 @@ const Dashboard = ({ onBack, analysisResult, analysisData }: DashboardProps) => 
                 <div className="space-y-2">
                   <h4 className="font-medium text-amber-600">Technical Risks</h4>
                   <ul className="text-sm text-slate-600 space-y-1 leading-relaxed">
-                    <li>• Model validation complexity</li>
-                    <li>• Computational infrastructure costs</li>
-                    <li>• Training data availability</li>
+                    {analysisResult.technicalFeasibility?.risks && analysisResult.technicalFeasibility.risks.length > 0 ? (
+                      analysisResult.technicalFeasibility.risks.map((risk, index) => (
+                        <li key={index}>• {risk}</li>
+                      ))
+                    ) : (
+                      <li>• No technical risks identified</li>
+                    )}
                   </ul>
                 </div>
                 <div className="space-y-2">
                   <h4 className="font-medium text-red-600">Market Barriers</h4>
                   <ul className="text-sm text-slate-600 space-y-1 leading-relaxed">
-                    <li>• Regulatory approval processes</li>
-                    <li>• Enterprise sales cycles</li>
-                    <li>• Customer validation requirements</li>
+                    {analysisResult.commercialPotential?.barriers && analysisResult.commercialPotential.barriers.length > 0 ? (
+                      analysisResult.commercialPotential.barriers.map((barrier, index) => (
+                        <li key={index}>• {barrier}</li>
+                      ))
+                    ) : (
+                      <li>• No market barriers identified</li>
+                    )}
                   </ul>
                 </div>
                 <div className="space-y-2">
-                  <h4 className="font-medium text-indigo-600">Commercial Risks</h4>
+                  <h4 className="font-medium text-indigo-600">Team Recommendations</h4>
                   <ul className="text-sm text-slate-600 space-y-1 leading-relaxed">
-                    <li>• IP protection challenges</li>
-                    <li>• Talent acquisition costs</li>
-                    <li>• Capital intensive scaling</li>
+                    {analysisResult.teamAndExecution?.recommendations && analysisResult.teamAndExecution.recommendations.length > 0 ? (
+                      analysisResult.teamAndExecution.recommendations.map((rec, index) => (
+                        <li key={index}>• {rec}</li>
+                      ))
+                    ) : (
+                      <li>• No team recommendations available</li>
+                    )}
                   </ul>
                 </div>
               </div>
             </CardContent>
           </Card>
 
-          {/* Funding Trends */}
+          {/* Team & Execution */}
           <Card className="shadow-lg border-0">
             <CardHeader>
               <CardTitle className="flex items-center gap-2 text-slate-800">
-                <DollarSign className="w-5 h-5" />
-                Funding Signals
+                <Users className="w-5 h-5" />
+                Team & Execution
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-sm text-slate-700">AI Drug Discovery</span>
-                  <Badge className="bg-emerald-600 text-white">+185%</Badge>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-slate-700">Biotech AI</span>
-                  <Badge className="bg-emerald-600 text-white">+142%</Badge>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-sm text-slate-700">Protein Analysis</span>
-                  <Badge className="bg-indigo-600 text-white">+67%</Badge>
-                </div>
-              </div>
-              <p className="text-xs text-slate-500 leading-relaxed">
-                YoY funding growth in related sectors (2023 vs 2022)
+              <p className="text-sm text-slate-600 leading-relaxed">
+                {analysisResult.teamAndExecution?.summary || "Team and execution analysis not available."}
               </p>
+              <div className="space-y-2">
+                <h5 className="text-sm font-medium text-slate-700">Required Expertise</h5>
+                <p className="text-sm text-slate-600">
+                  {analysisResult.teamAndExecution?.expertise || "Expertise requirements not specified."}
+                </p>
+              </div>
+              <div className="space-y-2">
+                <h5 className="text-sm font-medium text-slate-700">Resources</h5>
+                <p className="text-sm text-slate-600">
+                  {analysisResult.teamAndExecution?.resources || "Resource requirements not specified."}
+                </p>
+              </div>
             </CardContent>
           </Card>
         </div>
