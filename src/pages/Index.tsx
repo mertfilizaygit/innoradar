@@ -1,14 +1,33 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from "react";
+import LandingPage from "@/components/LandingPage";
+import Dashboard from "@/components/Dashboard";
 
 const Index = () => {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
-    </div>
-  );
+  const [currentView, setCurrentView] = useState<"landing" | "dashboard">("landing");
+  const [analysisData, setAnalysisData] = useState<{
+    text: string;
+    field?: string;
+    file?: File;
+  } | null>(null);
+
+  const handleAnalyze = (data: { text: string; field?: string; file?: File }) => {
+    setAnalysisData(data);
+    // Simulate processing time
+    setTimeout(() => {
+      setCurrentView("dashboard");
+    }, 1500);
+  };
+
+  const handleBackToLanding = () => {
+    setCurrentView("landing");
+    setAnalysisData(null);
+  };
+
+  if (currentView === "dashboard") {
+    return <Dashboard onBack={handleBackToLanding} />;
+  }
+
+  return <LandingPage onAnalyze={handleAnalyze} />;
 };
 
 export default Index;
