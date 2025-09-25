@@ -47,9 +47,9 @@ const Dashboard = ({ onBack }: DashboardProps) => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50/20">
+    <div className="min-h-screen bg-gradient-to-br from-background to-muted/30">
       {/* Header */}
-      <div className="bg-white border-b shadow-sm sticky top-0 z-10">
+      <div className="bg-white/80 backdrop-blur-xl border-b border-white/30 shadow-sm sticky top-0 z-10 relative">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -74,10 +74,10 @@ const Dashboard = ({ onBack }: DashboardProps) => {
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="container mx-auto px-4 py-8 relative">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Summary Card */}
-          <Card className="lg:col-span-3 shadow-lg border-0">
+          <Card className="lg:col-span-2 shadow-lg">
             <CardHeader className="pb-4">
               <div className="flex items-start justify-between">
                 <CardTitle className="text-xl text-slate-800">Research Summary</CardTitle>
@@ -104,6 +104,21 @@ const Dashboard = ({ onBack }: DashboardProps) => {
                   <li>Validated on 50,000+ experimental structures</li>
                 </ul>
               </div>
+            </CardContent>
+          </Card>
+
+          {/* Overall Score */}
+          <Card className="shadow-lg">
+            <CardHeader className="text-center pb-2">
+              <CardTitle className="text-vc-primary">Investment Score</CardTitle>
+            </CardHeader>
+            <CardContent className="text-center">
+              <div className="text-4xl font-bold text-vc-success mb-2">7.4</div>
+              <div className="text-sm text-muted-foreground mb-4">out of 10</div>
+              <Progress value={74} className="mb-4" />
+              <Badge variant="secondary" className="bg-vc-success/10 text-vc-success border-vc-success/20">
+                Strong Investment Opportunity
+              </Badge>
             </CardContent>
           </Card>
 

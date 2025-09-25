@@ -8,59 +8,81 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 210 40% 98%;
-    --foreground: 222 47% 11%;
+    /* Minimalist Black Theme */
+    --background: 0 0% 0%;
+    --foreground: 0 0% 100%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222 47% 11%;
+    --card: 0 0% 3%;
+    --card-foreground: 0 0% 100%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222 47% 11%;
+    --popover: 0 0% 3%;
+    --popover-foreground: 0 0% 100%;
 
-    --primary: 222 47% 11%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 0 0% 100%;
+    --primary-foreground: 0 0% 0%;
 
-    --secondary: 210 40% 96%;
-    --secondary-foreground: 222 47% 11%;
+    --secondary: 0 0% 10%;
+    --secondary-foreground: 0 0% 80%;
 
-    --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 0 0% 8%;
+    --muted-foreground: 0 0% 60%;
 
-    --accent: 210 40% 96%;
-    --accent-foreground: 222 47% 11%;
+    --accent: 0 0% 15%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 222 84% 5%;
+    --border: 0 0% 12%;
+    --input: 0 0% 8%;
+    --ring: 0 0% 100%;
 
-    /* VC Platform Colors - HSL Format */
-    --vc-primary: 203 89% 53%;
-    --vc-primary-light: 203 89% 65%;
-    --vc-secondary: 187 85% 53%;
-    --vc-accent: 168 76% 42%;
-    --vc-success: 142 76% 36%;
-    --vc-warning: 45 93% 47%;
-    --vc-chart-1: 203 89% 53%;
-    --vc-chart-2: 187 85% 53%;
-    --vc-chart-3: 168 76% 42%;
-    --vc-chart-4: 142 76% 36%;
-    --vc-chart-5: 45 93% 47%;
-    --vc-chart-6: 262 83% 58%;
+    /* Minimalist Platform Colors */
+    --vc-primary: 0 0% 100%;
+    --vc-primary-light: 0 0% 90%;
+    --vc-secondary: 0 0% 15%;
+    --vc-accent: 0 0% 25%;
+    --vc-success: 0 0% 60%;
+    --vc-warning: 0 0% 70%;
+    --vc-deep-black: 0 0% 0%;
+    
+    /* Chart Colors - Minimal Grays */
+    --vc-chart-1: 0 0% 80%;
+    --vc-chart-2: 0 0% 60%;
+    --vc-chart-3: 0 0% 40%;
+    --vc-chart-4: 0 0% 30%;
+    --vc-chart-5: 0 0% 20%;
+    --vc-chart-6: 0 0% 15%;
 
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(203 89% 53%), hsl(203 89% 65%));
-    --gradient-hero: linear-gradient(135deg, hsl(203 89% 53%) 0%, hsl(187 85% 53%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0 0% 100%) 0%, hsl(248 250 252 / 0.8) 100%);
+    /* Dark Cinematic Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(0 0% 10%), hsl(0 0% 20%));
+    --gradient-hero: linear-gradient(135deg, hsl(0 0% 0%) 0%, hsl(0 0% 8%) 35%, hsl(0 0% 18%) 70%, hsl(0 0% 25%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0 0% 3% / 0.8), hsl(0 0% 8% / 0.5));
+    --gradient-glass: linear-gradient(135deg, hsl(0 0% 100% / 0.03), hsl(0 0% 100% / 0.01));
+    --gradient-accent: linear-gradient(135deg, hsl(0 0% 15%), hsl(0 0% 25%));
+    --gradient-subtle: linear-gradient(135deg, hsl(0 0% 5%), hsl(0 0% 10%));
+    --gradient-mesh: radial-gradient(circle at 30% 70%, hsl(0 0% 8% / 0.4) 0%, transparent 50%), 
+                     radial-gradient(circle at 70% 30%, hsl(0 0% 12% / 0.3) 0%, transparent 50%);
+    
+    /* High-Resolution Grain Effect */
+    --grain-texture: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='1.2' numOctaves='6' stitchTiles='stitch' result='noise'/%3E%3CfeColorMatrix in='noise' type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.12'/%3E%3C/svg%3E");
+    
+    /* Film Grain Spots */
+    --grain-spots: radial-gradient(circle at 20% 30%, hsl(0 0% 100% / 0.03) 1px, transparent 1px),
+                   radial-gradient(circle at 80% 70%, hsl(0 0% 100% / 0.02) 1px, transparent 1px),
+                   radial-gradient(circle at 40% 80%, hsl(0 0% 100% / 0.025) 1px, transparent 1px),
+                   radial-gradient(circle at 70% 20%, hsl(0 0% 100% / 0.02) 1px, transparent 1px);
 
-    /* Shadows */
-    --shadow-card: 0 4px 6px -1px hsl(203 89% 53% / 0.1), 0 2px 4px -1px hsl(203 89% 53% / 0.06);
-    --shadow-lg: 0 10px 15px -3px hsl(203 89% 53% / 0.1), 0 4px 6px -2px hsl(203 89% 53% / 0.05);
+    /* Minimal Shadows */
+    --shadow-card: 0 4px 20px hsl(0 0% 0% / 0.5);
+    --shadow-lg: 0 10px 25px -3px hsl(0 0% 0% / 0.6);
+    --shadow-glow: 0 0 30px hsl(0 0% 100% / 0.1);
+    --shadow-subtle: 0 2px 10px hsl(0 0% 0% / 0.3);
+    --shadow-glass: inset 0 1px 0 hsl(0 0% 100% / 0.02);
 
     /* Animations */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-glow: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 
     --radius: 0.5rem;
 
