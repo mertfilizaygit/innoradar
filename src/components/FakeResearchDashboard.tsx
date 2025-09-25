@@ -19,90 +19,21 @@ import {
 } from "lucide-react";
 import RadarChart from "./RadarChart";
 import { useToast } from "@/hooks/use-toast";
-import { type AnalysisResult } from "@/services/claudeApi";
-import html2canvas from 'html2canvas';
-import jsPDF from 'jspdf';
-import { useRef } from 'react';
+import { type FakeResearchItem } from "@/data/fakeResearch";
 
-interface DashboardProps {
+interface FakeResearchDashboardProps {
   onBack: () => void;
-  analysisResult: AnalysisResult;
-  analysisData: {
-    text: string;
-    field?: string;
-    file?: File;
-  } | null;
+  researchItem: FakeResearchItem;
 }
 
-const Dashboard = ({ onBack, analysisResult, analysisData }: DashboardProps) => {
-  const dashboardRef = useRef<HTMLDivElement>(null);
+const FakeResearchDashboard = ({ onBack, researchItem }: FakeResearchDashboardProps) => {
   const { toast } = useToast();
 
-  // PDF Export fonksiyonu
-  const handleExportPDF = async () => {
-    if (!dashboardRef.current) return;
-
-    try {
-      toast({
-        title: "Generating PDF...",
-        description: "Please wait while we create your VC one-pager.",
-      });
-
-      // Dashboard'u screenshot olarak al
-      const canvas = await html2canvas(dashboardRef.current, {
-        scale: 2, // Yüksek kalite için
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff',
-        width: dashboardRef.current.scrollWidth,
-        height: dashboardRef.current.scrollHeight,
-      });
-
-      // PDF oluştur
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4'
-      });
-
-      // Sayfa boyutları
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      
-      // Canvas boyutlarını PDF'e sığdır
-      const canvasWidth = canvas.width;
-      const canvasHeight = canvas.height;
-      const ratio = Math.min(pdfWidth / (canvasWidth * 0.264583), pdfHeight / (canvasHeight * 0.264583));
-      
-      const imgWidth = canvasWidth * 0.264583 * ratio;
-      const imgHeight = canvasHeight * 0.264583 * ratio;
-      
-      // Ortalamak için
-      const x = (pdfWidth - imgWidth) / 2;
-      const y = 10; // Üstten 10mm boşluk
-
-      pdf.addImage(imgData, 'PNG', x, y, imgWidth, imgHeight);
-      
-      // Dosya adı oluştur
-      const fileName = `VC-Analysis-${new Date().toISOString().split('T')[0]}.pdf`;
-      
-      // PDF'i indir
-      pdf.save(fileName);
-
-      toast({
-        title: "PDF Generated Successfully!",
-        description: `Your VC one-pager has been downloaded as ${fileName}`,
-      });
-
-    } catch (error) {
-      console.error('PDF generation failed:', error);
-      toast({
-        title: "PDF Generation Failed",
-        description: "There was an error generating the PDF. Please try again.",
-        variant: "destructive",
-      });
-    }
+  const handleExport = () => {
+    toast({
+      title: "Export initiated",
+      description: "Your VC pitch deck is being generated...",
+    });
   };
 
   // Convert API scores from 0-100 to 0-10 scale for display
@@ -112,21 +43,12 @@ const Dashboard = ({ onBack, analysisResult, analysisData }: DashboardProps) => 
 
   // Prepare radar chart data from analysis result
   const scores = [
-    { category: "Market Size", score: normalizeScore(analysisResult.marketAnalysis.score), max: 10 },
-    { category: "Tech Readiness", score: normalizeScore(analysisResult.technicalFeasibility.score), max: 10 },
-    { category: "Scalability", score: normalizeScore(analysisResult.commercialPotential.score), max: 10 },
-    { category: "Team Potential", score: normalizeScore(analysisResult.teamAndExecution.score), max: 10 },
-    { category: "Impact", score: normalizeScore(analysisResult.overallScore), max: 10 },
+    { category: "Market Size", score: normalizeScore(researchItem.analysisResult.marketAnalysis?.score || 0), max: 10 },
+    { category: "Tech Readiness", score: normalizeScore(researchItem.analysisResult.technicalFeasibility?.score || 0), max: 10 },
+    { category: "Scalability", score: normalizeScore(researchItem.analysisResult.commercialPotential?.score || 0), max: 10 },
+    { category: "Team Potential", score: normalizeScore(researchItem.analysisResult.teamAndExecution?.score || 0), max: 10 },
+    { category: "Impact", score: normalizeScore(researchItem.analysisResult.overallScore || 0), max: 10 },
   ];
-
-  // Extract first few words of the research text for display
-  const getResearchTitle = (): string => {
-    if (!analysisData?.text) return "Research Analysis";
-    
-    const words = analysisData.text.split(" ");
-    const titleWords = words.slice(0, 8);
-    return titleWords.join(" ") + (words.length > 8 ? "..." : "");
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-white">
@@ -146,7 +68,7 @@ const Dashboard = ({ onBack, analysisResult, analysisData }: DashboardProps) => 
               <h1 className="text-2xl font-bold text-gray-900">Research Analysis Dashboard</h1>
             </div>
             <Button 
-              onClick={handleExportPDF} 
+              onClick={handleExport} 
               className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
             >
               <Download className="w-4 h-4 mr-2" />
@@ -156,7 +78,7 @@ const Dashboard = ({ onBack, analysisResult, analysisData }: DashboardProps) => 
         </div>
       </div>
 
-      <div ref={dashboardRef} className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Research Summary - Full Width */}
           <Card className="lg:col-span-4 shadow-lg border-0 bg-white">
@@ -167,31 +89,37 @@ const Dashboard = ({ onBack, analysisResult, analysisData }: DashboardProps) => 
               <div className="grid md:grid-cols-3 gap-4 mb-6">
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <User className="w-4 h-4" />
-                  <span>Research Analysis</span>
+                  <span>{researchItem.author}</span>
                 </div>
-                {analysisData?.field && (
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <MapPin className="w-4 h-4" />
-                    <span>{analysisData.field}</span>
-                  </div>
-                )}
+                <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <MapPin className="w-4 h-4" />
+                  <span>{researchItem.institution}</span>
+                </div>
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <Calendar className="w-4 h-4" />
-                  <span>{new Date().toLocaleDateString()}</span>
+                  <span>{researchItem.publishedDate}</span>
                 </div>
               </div>
               
               <h3 className="font-semibold text-lg text-gray-900 mb-3">
-                {getResearchTitle()}
+                {researchItem.title}
               </h3>
-              <p className="text-gray-700 leading-relaxed max-h-32 overflow-y-auto">
-                {analysisData?.text}
+              <p className="text-gray-700 leading-relaxed">
+                {researchItem.abstract}
               </p>
+              
+              <div className="flex flex-wrap gap-2 mt-4">
+                {researchItem.tags.map((tag, index) => (
+                  <span key={index} className="px-3 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                    {tag}
+                  </span>
+                ))}
+              </div>
               
               <div className="space-y-2 mt-6">
                 <h4 className="font-medium text-gray-900">Key Insights:</h4>
                 <ul className="list-disc pl-6 space-y-1 text-sm text-gray-700">
-                  {analysisResult.keyInsights.map((insight, index) => (
+                  {researchItem.analysisResult.keyInsights.map((insight, index) => (
                     <li key={index}>{insight}</li>
                   ))}
                 </ul>
@@ -208,7 +136,7 @@ const Dashboard = ({ onBack, analysisResult, analysisData }: DashboardProps) => 
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-3">
-              {analysisResult.nextSteps.map((step, index) => (
+              {researchItem.analysisResult.nextSteps.map((step, index) => (
                 <div key={index} className="flex items-start gap-3 p-3 bg-white/70 rounded-lg border border-blue-100">
                   <div className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mt-0.5 flex-shrink-0">
                     {index + 1}
@@ -262,7 +190,7 @@ const Dashboard = ({ onBack, analysisResult, analysisData }: DashboardProps) => 
                     <DollarSign className="w-4 h-4 text-green-600" />
                   </div>
                   <div className="text-base text-green-700">
-                    {analysisResult.marketAnalysis.marketSize}
+                    {researchItem.analysisResult.marketAnalysis?.marketSize}
                   </div>
                 </div>
                 
@@ -272,7 +200,7 @@ const Dashboard = ({ onBack, analysisResult, analysisData }: DashboardProps) => 
                     <TrendingUp className="w-4 h-4 text-green-600" />
                   </div>
                   <div className="text-sm text-gray-700">
-                    {analysisResult.commercialPotential.scalability}
+                    {researchItem.analysisResult.commercialPotential?.scalability}
                   </div>
                 </div>
 
@@ -281,7 +209,7 @@ const Dashboard = ({ onBack, analysisResult, analysisData }: DashboardProps) => 
                     <div className="text-sm font-bold text-gray-900">Market Trends</div>
                   </h5>
                   <div className="space-y-2">
-                    {analysisResult.marketAnalysis.trends.map((trend, index) => (
+                    {researchItem.analysisResult.marketAnalysis?.trends.map((trend, index) => (
                       <div key={index} className="flex items-start gap-2 text-sm text-gray-700">
                         <div className="w-1.5 h-1.5 bg-green-500 rounded-full mt-2 flex-shrink-0"></div>
                         <span>{trend}</span>
@@ -308,7 +236,7 @@ const Dashboard = ({ onBack, analysisResult, analysisData }: DashboardProps) => 
                   Competitive Landscape
                 </div>
                 <div className="text-sm text-gray-700 leading-relaxed">
-                  {analysisResult.marketAnalysis.competition}
+                  {researchItem.analysisResult.marketAnalysis?.competition}
                 </div>
               </div>
             </CardContent>
@@ -326,12 +254,12 @@ const Dashboard = ({ onBack, analysisResult, analysisData }: DashboardProps) => 
               <div className="space-y-4">
                 <h4 className="font-semibold text-gray-900">Commercial Opportunity</h4>
                 <p className="text-sm text-gray-700 leading-relaxed">
-                  {analysisResult.commercialPotential.summary}
+                  {researchItem.analysisResult.commercialPotential?.summary}
                 </p>
                 <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
                   <h5 className="text-sm font-medium text-gray-900 mb-2">Potential Revenue Model</h5>
                   <p className="text-sm text-gray-700">
-                    {analysisResult.commercialPotential.revenueModel}
+                    {researchItem.analysisResult.commercialPotential?.revenueModel}
                   </p>
                 </div>
               </div>
@@ -348,19 +276,19 @@ const Dashboard = ({ onBack, analysisResult, analysisData }: DashboardProps) => 
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-sm text-gray-700 leading-relaxed">
-                {analysisResult.teamAndExecution.summary}
+                {researchItem.analysisResult.teamAndExecution?.summary}
               </p>
               <div className="space-y-3">
                 <div className="bg-indigo-50 p-3 rounded-lg border border-indigo-200">
                   <h5 className="text-sm font-medium text-gray-900 mb-1">Required Expertise</h5>
                   <p className="text-sm text-gray-700">
-                    {analysisResult.teamAndExecution.expertise}
+                    {researchItem.analysisResult.teamAndExecution?.expertise}
                   </p>
                 </div>
                 <div className="bg-indigo-50 p-3 rounded-lg border border-indigo-200">
                   <h5 className="text-sm font-medium text-gray-900 mb-1">Resources</h5>
                   <p className="text-sm text-gray-700">
-                    {analysisResult.teamAndExecution.resources}
+                    {researchItem.analysisResult.teamAndExecution?.resources}
                   </p>
                 </div>
               </div>
@@ -383,7 +311,7 @@ const Dashboard = ({ onBack, analysisResult, analysisData }: DashboardProps) => 
                     Technical Risks
                   </h4>
                   <div className="space-y-2">
-                    {analysisResult.technicalFeasibility.risks.map((risk, index) => (
+                    {researchItem.analysisResult.technicalFeasibility?.risks.map((risk, index) => (
                       <div key={index} className="flex items-start gap-2 text-sm text-gray-700">
                         <div className="w-1.5 h-1.5 bg-amber-500 rounded-full mt-2 flex-shrink-0"></div>
                         {risk}
@@ -398,7 +326,7 @@ const Dashboard = ({ onBack, analysisResult, analysisData }: DashboardProps) => 
                     Market Barriers
                   </h4>
                   <div className="space-y-2">
-                    {analysisResult.commercialPotential.barriers.map((barrier, index) => (
+                    {researchItem.analysisResult.commercialPotential?.barriers.map((barrier, index) => (
                       <div key={index} className="flex items-start gap-2 text-sm text-gray-700">
                         <div className="w-1.5 h-1.5 bg-red-500 rounded-full mt-2 flex-shrink-0"></div>
                         {barrier}
@@ -413,74 +341,14 @@ const Dashboard = ({ onBack, analysisResult, analysisData }: DashboardProps) => 
                     Team Recommendations
                   </h4>
                   <div className="space-y-2">
-                    {analysisResult.teamAndExecution.recommendations ? (
-                      analysisResult.teamAndExecution.recommendations.map((rec, index) => (
-                        <div key={index} className="flex items-start gap-2 text-sm text-gray-700">
-                          <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
-                          {rec}
-                        </div>
-                      ))
-                    ) : (
-                      <div className="text-sm text-gray-500">No team recommendations available</div>
-                    )}
+                    {researchItem.analysisResult.teamAndExecution?.recommendations.map((rec, index) => (
+                      <div key={index} className="flex items-start gap-2 text-sm text-gray-700">
+                        <div className="w-1.5 h-1.5 bg-blue-500 rounded-full mt-2 flex-shrink-0"></div>
+                        {rec}
+                      </div>
+                    ))}
                   </div>
                 </div>
-                {analysisResult.hybridOpportunities && analysisResult.hybridOpportunities.length > 0 && (
-  <Card className="lg:col-span-4 shadow-lg border-0 bg-gradient-to-br from-indigo-50 to-purple-50">
-    <CardHeader>
-      <CardTitle className="flex items-center gap-2 text-indigo-900">
-        <Lightbulb className="w-5 h-5" />
-        Hybrid Innovation Opportunities
-      </CardTitle>
-    </CardHeader>
-    <CardContent>
-      <p className="text-sm text-gray-600 mb-6">
-        Potential synergies with our existing breakthrough research portfolio for enhanced innovation impact:
-      </p>
-      <div className="grid md:grid-cols-2 gap-4">
-        {analysisResult.hybridOpportunities.map((opportunity, index) => {
-          // Detect which existing research is mentioned
-          const getResearchConnection = (text: string) => {
-            const lowerText = text.toLowerCase();
-            
-            // Daha gevşek keyword matching
-            if (lowerText.includes('drug') || lowerText.includes('molecular') || lowerText.includes('pharmaceutical') || lowerText.includes('medicine')) {
-              return { name: 'AI-Powered Drug Discovery', color: 'bg-green-500', borderColor: 'border-green-200' };
-            }
-            if (lowerText.includes('quantum') || lowerText.includes('climate') || lowerText.includes('environmental') || lowerText.includes('weather')) {
-              return { name: 'Quantum Climate Modeling', color: 'bg-blue-500', borderColor: 'border-blue-200' };
-            }
-            if (lowerText.includes('neural') || lowerText.includes('brain') || lowerText.includes('interface') || lowerText.includes('medical device')) {
-              return { name: 'Neural Interface Technology', color: 'bg-purple-500', borderColor: 'border-purple-200' };
-            }
-            
-            // Default - eğer hiçbiri match etmezse
-            return { name: 'Innovation Opportunity', color: 'bg-indigo-500', borderColor: 'border-indigo-200' };
-          };
-
-          const connection = getResearchConnection(opportunity);
-
-          return (
-            <div key={index} className={`bg-white/80 p-4 rounded-lg border ${connection.borderColor} hover:shadow-md transition-all duration-200`}>
-              <div className="flex items-start gap-3">
-                <div className={`${connection.color} text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold mt-0.5 flex-shrink-0`}>
-                  {index + 1}
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className={`w-2 h-2 ${connection.color} rounded-full`}></div>
-                    <span className="text-xs font-medium text-gray-600">{connection.name}</span>
-                  </div>
-                  <p className="text-sm text-gray-800 leading-relaxed">{opportunity}</p>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </CardContent>
-  </Card>
-)}
               </div>
             </CardContent>
           </Card>
@@ -490,4 +358,4 @@ const Dashboard = ({ onBack, analysisResult, analysisData }: DashboardProps) => 
   );
 };
 
-export default Dashboard;
+export default FakeResearchDashboard;

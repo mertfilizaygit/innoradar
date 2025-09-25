@@ -38,6 +38,7 @@ interface AnalysisResult {
   investmentRecommendation: string;
   keyInsights: string[];
   nextSteps: string[];
+  hybridOpportunities?: string[];
 }
 
 class ClaudeApiService {
@@ -61,64 +62,85 @@ class ClaudeApiService {
     const fieldContext = field ? `Research Field: ${field}\n\n` : '';
     
     return `You are a senior venture capital analyst with 15+ years of experience evaluating research commercialization opportunities. Analyze the following research abstract for startup and investment potential.
+    
+    ${fieldContext}Research Abstract:
+    ${researchText}
+    
+    Provide a comprehensive VC-style analysis in the following JSON format (return ONLY valid JSON, no additional text):
+    
+    {
+      "marketAnalysis": {
+        "score": [0-100],
+        "summary": "Brief market assessment focusing on market creation potential and disruption of established practices (2-3 sentences)",
+        "marketSize": "Estimated market size with specific numbers (e.g., $X billion by 2025) and growth rate (X% CAGR)",
+        "competition": "Competitive landscape analysis with focus on differentiation",
+        "trends": ["trend1", "trend2", "trend3"]
+      },
+      "technicalFeasibility": {
+        "score": [0-100],
+        "summary": "Technical viability assessment with emphasis on innovation breakthrough potential (2-3 sentences)",
+        "complexity": "Implementation complexity level",
+        "timeToMarket": "Estimated development timeline",
+        "risks": ["risk1", "risk2", "risk3"]
+      },
+      "commercialPotential": {
+        "score": [0-100],
+        "summary": "Commercial viability assessment emphasizing ecosystem development potential and market failure solutions (2-3 sentences)",
+        "revenueModel": "Potential business models",
+        "scalability": "Assessment of solution scalability and ecosystem impact (1-2 sentences)",
+        "barriers": ["barrier1", "barrier2", "barrier3"]
+      },
+      "teamAndExecution": {
+        "score": [0-100],
+        "summary": "Team and execution assessment (2-3 sentences)",
+        "expertise": "Required expertise and team composition",
+        "resources": "Resource requirements",
+        "recommendations": ["rec1", "rec2", "rec3"]
+      },
+      "overallScore": [0-100],
+      "investmentRecommendation": "STRONG BUY / BUY / HOLD / WEAK / PASS",
+      "keyInsights": ["insight1", "insight2", "insight3", "insight4"],
+      "nextSteps": ["step1", "step2", "step3", "step4"],
+      "hybridOpportunities": ["opportunity1", "opportunity2"]
+    }
+    
+    Scoring Guidelines:
+    - 90-100: Exceptional breakthrough opportunity with clear market creation potential
+    - 80-89: Strong innovation with high ecosystem development potential  
+    - 70-79: Good opportunity addressing significant market gaps
+    - 60-69: Average opportunity, needs validation
+    - 50-59: Below average, limited breakthrough potential
+    - 0-49: Poor opportunity, incremental improvement only
+    
+    CRITICAL TEAM SCORING RULES:
+    - Team scores should be CONSERVATIVE and REALISTIC
+    - Only give 70+ if team has proven track record in the specific field
+    - Academic researchers typically score 45-60 (lack commercial experience)
+    - Missing key expertise should significantly lower scores
+    - Default range should be 35-55 for most research abstracts
+    - Only exceptional, proven teams with relevant exits should score 60+
+    
+    Focus on evaluating:
+    1. MARKET CREATION: Does this innovation have potential to create entirely new markets or fundamentally challenge established ways of doing things?
+    2. ECOSYSTEM NUCLEUS: Can this serve as the foundation for a new innovation ecosystem, attracting other innovations and players?
+    3. MARKET FAILURE SOLUTION: Does this address a significant market failure where current solutions are inadequate or non-existent?
+    4. Technical differentiation and IP potential
+    5. Business model viability and scalability
+    6. Competitive advantages and barriers to entry
+    7. Capital efficiency and exit potential
+    
+HYBRID OPPORTUNITIES: Compare this research with these existing breakthrough technologies and suggest 1-2 potential collaboration opportunities (if any realistic synergies exist):
 
-${fieldContext}Research Abstract:
-${researchText}
+EXISTING BREAKTHROUGH RESEARCH:
+1. "AI-Powered Drug Discovery" - Molecular design platform with 94% accuracy, reduces drug discovery from years to months
+2. "Quantum Climate Modeling" - Real-time environmental prediction using quantum computing, 1000x faster processing  
+3. "Neural Interface Technology" - Non-invasive brain-computer interface with 96% accuracy for paralysis treatment
 
-Provide a comprehensive VC-style analysis in the following JSON format (return ONLY valid JSON, no additional text):
+For hybridOpportunities, suggest realistic synergies ONLY if they make sense:
+- "Integration with [Technology Name]: [Specific collaboration description]"
+- "Synergy with [Technology Name]: [Specific benefit and application]"
 
-{
-  "marketAnalysis": {
-    "score": [0-100],
-    "summary": "Brief market assessment (2-3 sentences)",
-    "marketSize": "Estimated market size and growth potential",
-    "competition": "Competitive landscape analysis",
-    "trends": ["trend1", "trend2", "trend3"]
-  },
-  "technicalFeasibility": {
-    "score": [0-100],
-    "summary": "Technical viability assessment (2-3 sentences)",
-    "complexity": "Implementation complexity level",
-    "timeToMarket": "Estimated development timeline",
-    "risks": ["risk1", "risk2", "risk3"]
-  },
-  "commercialPotential": {
-    "score": [0-100],
-    "summary": "Commercial viability assessment (2-3 sentences)",
-    "revenueModel": "Potential business models",
-    "scalability": "Scalability assessment",
-    "barriers": ["barrier1", "barrier2", "barrier3"]
-  },
-  "teamAndExecution": {
-    "score": [0-100],
-    "summary": "Team and execution assessment (2-3 sentences)",
-    "expertise": "Required expertise and team composition",
-    "resources": "Resource requirements",
-    "recommendations": ["rec1", "rec2", "rec3"]
-  },
-  "overallScore": [0-100],
-  "investmentRecommendation": "STRONG BUY / BUY / HOLD / WEAK / PASS",
-  "keyInsights": ["insight1", "insight2", "insight3", "insight4"],
-  "nextSteps": ["step1", "step2", "step3", "step4"]
-}
-
-Scoring Guidelines:
-- 90-100: Exceptional opportunity, clear path to unicorn status
-- 80-89: Strong opportunity with high growth potential
-- 70-79: Good opportunity with moderate risks
-- 60-69: Average opportunity, needs significant work
-- 50-59: Below average, major concerns
-- 0-49: Poor opportunity, not recommended
-
-Focus on:
-- Market timing and size
-- Technical differentiation and IP potential
-- Business model viability
-- Competitive advantages
-- Scalability factors
-- Risk assessment
-- Capital requirements
-- Exit potential`;
+If no meaningful synergies exist, provide general innovation opportunities instead.`;
   }
 
   async analyzeResearch(researchText: string, field?: string): Promise<AnalysisResult> {

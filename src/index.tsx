@@ -1,20 +1,23 @@
 import { useState, useEffect } from "react";
 import LandingPage from "@/components/LandingPage";
 import Dashboard from "@/components/Dashboard";
+import FakeResearchDashboard from "@/components/FakeResearchDashboard";
 import ApiKeySetup from "@/components/ApiKeySetup";
 import { useClaudeApi } from "@/hooks/useClaudeApi";
 import { type AnalysisResult } from "@/services/claudeApi";
+import { fakeResearchData } from "@/data/fakeResearch";
 import { Button } from "@/components/ui/button";
 import { Key, Loader2 } from "lucide-react";
 
 const Index = () => {
-  const [currentView, setCurrentView] = useState<"landing" | "dashboard">("landing");
+  const [currentView, setCurrentView] = useState<"landing" | "dashboard" | "fake-research">("landing");
   const [analysisData, setAnalysisData] = useState<{
     text: string;
     field?: string;
     file?: File;
   } | null>(null);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
+  const [selectedFakeResearch, setSelectedFakeResearch] = useState<string | null>(null);
   const [showApiKeySetup, setShowApiKeySetup] = useState(false);
 
   const {
@@ -40,7 +43,7 @@ const Index = () => {
     });
   }, [apiKey, isValidKey, isTestingKey, isAnalyzing]);
 
-
+  // API key'i otomatik set et
   useEffect(() => {
     const providedKey = "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";
     if (!apiKey && providedKey) {
@@ -55,11 +58,6 @@ const Index = () => {
       textLength: data.text?.length || 0,
       field: data.field,
       hasFile: !!data.file
-    });
-    console.log("🔑 API Key status:", { 
-      hasApiKey: !!apiKey, 
-      isValidKey, 
-      keyLength: apiKey?.length || 0 
     });
 
     // Check if API key is configured
@@ -77,26 +75,16 @@ const Index = () => {
     // Reset states
     setAnalysisData(data);
     setAnalysisResult(null);
-    setCurrentView("landing"); // Stay on landing during analysis
+    setCurrentView("landing");
     
     try {
       console.log("📝 Analyzing text:", data.text.substring(0, 100) + "...");
       const result = await analyzeResearch(data.text, data.field);
-      console.log("✅ Analysis result received:", {
-        hasResult: !!result,
-        hasMarketAnalysis: !!result?.marketAnalysis,
-        hasTechnicalFeasibility: !!result?.technicalFeasibility,
-        hasCommercialPotential: !!result?.commercialPotential,
-        hasTeamAndExecution: !!result?.teamAndExecution,
-        overallScore: result?.overallScore,
-        recommendation: result?.investmentRecommendation
-      });
       
       if (result && result.marketAnalysis && result.technicalFeasibility && 
           result.commercialPotential && result.teamAndExecution) {
         console.log("🎯 Valid result received, setting state and switching to dashboard");
         setAnalysisResult(result);
-        // Use setTimeout to ensure state is set before view change
         setTimeout(() => {
           setCurrentView("dashboard");
         }, 100);
@@ -110,26 +98,21 @@ const Index = () => {
     }
   };
 
+  const handleViewFakeResearch = (researchId: string) => {
+    setSelectedFakeResearch(researchId);
+    setCurrentView("fake-research");
+  };
+
   const handleBackToLanding = () => {
     console.log("🔙 Going back to landing page");
     setCurrentView("landing");
     setAnalysisData(null);
     setAnalysisResult(null);
+    setSelectedFakeResearch(null);
   };
-
-  // Debug current state
-  useEffect(() => {
-    console.log("📊 Current State:", {
-      currentView,
-      hasAnalysisResult: !!analysisResult,
-      hasAnalysisData: !!analysisData,
-      isAnalyzing
-    });
-  }, [currentView, analysisResult, analysisData, isAnalyzing]);
 
   // Show loading state while analyzing
   if (isAnalyzing) {
-    console.log("⏳ Showing loading state");
     return (
       <div className="min-h-screen bg-gradient-to-br from-background to-muted/30 flex items-center justify-center">
         <div className="text-center space-y-4">
@@ -142,7 +125,23 @@ const Index = () => {
     );
   }
 
-  // Only show dashboard if we have valid analysis result
+  // Show fake research dashboard
+  if (currentView === "fake-research" && selectedFakeResearch) {
+    const researchItem = fakeResearchData.find(item => item.id === selectedFakeResearch);
+    if (!researchItem) {
+      setCurrentView("landing");
+      return null;
+    }
+
+    return (
+      <FakeResearchDashboard 
+        onBack={handleBackToLanding}
+        researchItem={researchItem}
+      />
+    );
+  }
+
+  // Show real analysis dashboard
   if (currentView === "dashboard") {
     if (!analysisResult) {
       console.error("❌ CRITICAL: Trying to show dashboard without analysisResult, forcing back to landing");
@@ -157,7 +156,6 @@ const Index = () => {
       );
     }
 
-    console.log("🎯 Rendering dashboard with result");
     return (
       <Dashboard 
         onBack={handleBackToLanding} 
@@ -167,7 +165,7 @@ const Index = () => {
     );
   }
 
-  console.log("🏠 Rendering landing page");
+  // Show landing page
   return (
     <>
       <div className="relative">
@@ -189,7 +187,8 @@ const Index = () => {
         </div>
 
         <LandingPage 
-          onAnalyze={handleAnalyze} 
+          onAnalyze={handleAnalyze}
+          onViewFakeResearch={handleViewFakeResearch}
           isAnalyzing={isAnalyzing}
           hasValidApiKey={isValidKey}
         />

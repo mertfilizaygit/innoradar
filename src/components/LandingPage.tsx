@@ -2,21 +2,21 @@ import { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, FileText, BarChart3, Target, TrendingUp, Edit3, Loader2 } from "lucide-react";
+import { Upload, FileText, BarChart3, Target, TrendingUp, Edit3, Loader2, Search, Calendar, MapPin, User, ArrowRight } from "lucide-react";
 import { extractTextFromPDF } from "@/services/pdfExtractor";
+import { fakeResearchData } from "@/data/fakeResearch";
 
 interface LandingPageProps {
   onAnalyze: (data: { text: string; field?: string; file?: File }) => void;
+  onViewFakeResearch: (researchId: string) => void;
   isAnalyzing?: boolean;
   hasValidApiKey?: boolean;
   setIsAnalyzing?: (value: boolean) => void;
 }
 
-const LandingPage = ({ onAnalyze, isAnalyzing, hasValidApiKey, setIsAnalyzing }: LandingPageProps) => {
+const LandingPage = ({ onAnalyze, onViewFakeResearch, isAnalyzing, hasValidApiKey, setIsAnalyzing }: LandingPageProps) => {
   const [researchText, setResearchText] = useState("");
-  const [selectedField, setSelectedField] = useState<string>("");
   const [dragActive, setDragActive] = useState(false);
   const [inputMode, setInputMode] = useState<"text" | "upload">("text");
   const [isPdfProcessing, setIsPdfProcessing] = useState(false);
@@ -36,7 +36,6 @@ const LandingPage = ({ onAnalyze, isAnalyzing, hasValidApiKey, setIsAnalyzing }:
     }
   
     try {
-      // Use setIsAnalyzing if available, otherwise use local state
       const setLoading = setIsAnalyzing || setIsPdfProcessing;
       setLoading(true);
       
@@ -51,7 +50,7 @@ const LandingPage = ({ onAnalyze, isAnalyzing, hasValidApiKey, setIsAnalyzing }:
         return;
       }
   
-      onAnalyze({ text: extractedText, field: selectedField, file });
+      onAnalyze({ text: extractedText, file });
     } catch (error) {
       toast({
         title: "PDF Processing Failed",
@@ -88,13 +87,13 @@ const LandingPage = ({ onAnalyze, isAnalyzing, hasValidApiKey, setIsAnalyzing }:
       if (wordCount < MIN_WORD_COUNT) {
         toast({
           title: "Text too short",
-          description: `Please provide at least ${MIN_WORD_COUNT} words for better analysis. Current: ${wordCount} words.`,
+          description: `Please provide at least ${MIN_WORD_COUNT} words for better analysis.`,
           variant: "destructive",
         });
         return;
       }
       
-      onAnalyze({ text: researchText, field: selectedField });
+      onAnalyze({ text: researchText });
       return;
     }
     
@@ -128,7 +127,7 @@ const LandingPage = ({ onAnalyze, isAnalyzing, hasValidApiKey, setIsAnalyzing }:
         </div>
       </nav>
 
-      {/* Hero Section */}
+      {/* Hero Section - VC Criteria Kaldırıldı */}
       <div className="relative overflow-hidden bg-gradient-to-r from-vc-primary to-vc-secondary">
         <div className="absolute inset-0 bg-black/20"></div>
         <div className="relative container mx-auto px-4 py-24 text-center">
@@ -136,8 +135,8 @@ const LandingPage = ({ onAnalyze, isAnalyzing, hasValidApiKey, setIsAnalyzing }:
             Turn Research into Startup Insights
           </h1>
           <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-            AI-powered VC analysis for scientific research commercialization. Evaluate startup potential, 
-            market opportunities, and investment readiness in minutes.
+            AI-powered VC analysis for scientific research commercialization. Evaluate breakthrough potential, 
+            market opportunities, and investment readiness.
           </p>
           <div className="flex items-center justify-center gap-8 text-white/80">
             <div className="flex items-center gap-2">
@@ -150,7 +149,7 @@ const LandingPage = ({ onAnalyze, isAnalyzing, hasValidApiKey, setIsAnalyzing }:
             </div>
             <div className="flex items-center gap-2">
               <TrendingUp className="w-5 h-5" />
-              <span>Growth Potential</span>
+              <span>Innovation Impact</span>
             </div>
           </div>
         </div>
@@ -211,18 +210,6 @@ const LandingPage = ({ onAnalyze, isAnalyzing, hasValidApiKey, setIsAnalyzing }:
                       onChange={(e) => setResearchText(e.target.value)}
                       disabled={isProcessing}
                     />
-                    <div className="flex justify-between items-center text-sm">
-                      <span className={`${
-                        currentWordCount < MIN_WORD_COUNT 
-                          ? "text-destructive" 
-                          : "text-muted-foreground"
-                      }`}>
-                        {currentWordCount} / {MIN_WORD_COUNT} words minimum
-                      </span>
-                      {currentWordCount >= MIN_WORD_COUNT && (
-                        <span className="text-green-600">✓ Ready for analysis</span>
-                      )}
-                    </div>
                   </div>
                 ) : (
                   <div className="flex items-center justify-center">
@@ -277,25 +264,9 @@ const LandingPage = ({ onAnalyze, isAnalyzing, hasValidApiKey, setIsAnalyzing }:
                     </div>
                   </div>
                 )}
-
-                <Select value={selectedField} onValueChange={setSelectedField} disabled={isProcessing}>
-                  <SelectTrigger className="h-12 border-0 border-b border-border bg-transparent rounded-none focus:ring-0 focus:border-foreground">
-                    <SelectValue placeholder="SELECT INDUSTRY (OPTIONAL)" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-background border border-border">
-                    <SelectItem value="ai">AI & MACHINE LEARNING</SelectItem>
-                    <SelectItem value="biotech">BIOTECHNOLOGY</SelectItem>
-                    <SelectItem value="energy">ENERGY & POWER</SelectItem>
-                    <SelectItem value="materials">MATERIALS SCIENCE</SelectItem>
-                    <SelectItem value="quantum">QUANTUM TECHNOLOGY</SelectItem>
-                    <SelectItem value="space">SPACE TECHNOLOGY</SelectItem>
-                    <SelectItem value="climate">CLIMATE TECH</SelectItem>
-                    <SelectItem value="other">OTHER</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
 
-              {/* Analyze Button */}
+              {/* Scan Button */}
               <div className="mt-12 text-center">
                 <Button
                   onClick={handleAnalyze}
@@ -310,22 +281,79 @@ const LandingPage = ({ onAnalyze, isAnalyzing, hasValidApiKey, setIsAnalyzing }:
                   {isProcessing ? (
                     <>
                       <Loader2 className="w-6 h-6 mr-3 animate-spin" />
-                      {isPdfProcessing ? "Processing PDF..." : "Analyzing..."}
+                      {isPdfProcessing ? "Processing PDF..." : "Scanning..."}
                     </>
                   ) : (
                     <>
-                      <FileText className="w-6 h-6 mr-3" />
-                      Analyze Research Potential
+                      <Search className="w-6 h-6 mr-3" />
+                      Scan
                     </>
                   )}
                 </Button>
-                <p className="text-sm text-muted-foreground mt-4">
-                  Get comprehensive VC-style analysis in under 30 seconds
-                </p>
               </div>
             </div>
           </CardContent>
         </Card>
+
+        {/* Featured Research Examples */}
+        <div className="max-w-6xl mx-auto mt-16">
+          <div className="text-center mb-12">
+            <h3 className="text-2xl font-bold mb-4">Featured Research Analysis</h3>
+            <p className="text-muted-foreground">
+              Explore our comprehensive analysis of breakthrough research projects
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-3 gap-6">
+            {fakeResearchData.map((research) => (
+              <Card 
+                key={research.id} 
+                className="group cursor-pointer hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] bg-background/95 backdrop-blur-sm border-border/20"
+                onClick={() => onViewFakeResearch(research.id)}
+              >
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
+                    <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full font-medium">
+                      {research.field}
+                    </span>
+                    <div className="flex items-center gap-1">
+                      <Calendar className="w-3 h-3" />
+                      <span>{research.publishedDate}</span>
+                    </div>
+                  </div>
+                  
+                  <h4 className="font-semibold text-lg mb-3 line-clamp-2 group-hover:text-vc-primary transition-colors">
+                    {research.title}
+                  </h4>
+                  
+                  <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
+                    {research.abstract}
+                  </p>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <User className="w-3 h-3" />
+                      <span>{research.author}</span>
+                    </div>
+                    <div className="flex items-center gap-1 text-vc-primary text-sm font-medium group-hover:gap-2 transition-all">
+                      <span>View Analysis</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </div>
+                  </div>
+                  
+                  <div className="mt-4 pt-4 border-t border-border/20">
+                    <div className="flex justify-between items-center text-xs">
+                      <span className="text-muted-foreground">Overall Score</span>
+                      <span className="font-semibold text-vc-primary">
+                        {research.analysisResult.overallScore}/100
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );
