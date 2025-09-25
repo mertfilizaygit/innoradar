@@ -81,29 +81,40 @@ const LandingPage = ({ onAnalyze }: LandingPageProps) => {
 
       {/* Input Section */}
       <div className="container mx-auto px-4 py-16">
-        <div className="max-w-4xl mx-auto">
-          <Card className="border-0 shadow-lg">
-            <CardContent className="p-8">
-              <div className="grid md:grid-cols-2 gap-8">
+        <div className="max-w-5xl mx-auto">
+          <Card className="border-0 shadow-xl bg-white/95 backdrop-blur-sm">
+            <CardContent className="p-10">
+              <div className="grid lg:grid-cols-2 gap-12">
                 {/* Text Input */}
                 <div className="space-y-6">
-                  <h3 className="text-2xl font-semibold text-vc-primary">Research Abstract</h3>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-8 h-8 bg-vc-primary rounded-full flex items-center justify-center text-white font-bold text-sm">1</div>
+                    <h3 className="text-2xl font-semibold text-vc-primary">Research Abstract</h3>
+                  </div>
                   <Textarea
-                    placeholder="Paste your research abstract here..."
-                    className="min-h-[200px] resize-none border-2 focus:border-vc-secondary"
+                    placeholder="Paste your research abstract, paper summary, or key findings here...
+
+Example: Novel machine learning approach for protein folding prediction achieving 95% accuracy across diverse protein families..."
+                    className="min-h-[240px] resize-none border-2 focus:border-vc-secondary transition-all duration-300 text-base leading-relaxed p-4"
                     value={researchText}
                     onChange={(e) => setResearchText(e.target.value)}
                   />
+                  <p className="text-sm text-muted-foreground">
+                    Minimum 100 characters recommended for best analysis results
+                  </p>
                 </div>
 
                 {/* File Upload */}
                 <div className="space-y-6">
-                  <h3 className="text-2xl font-semibold text-vc-primary">Upload PDF</h3>
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-8 h-8 bg-vc-secondary rounded-full flex items-center justify-center text-white font-bold text-sm">2</div>
+                    <h3 className="text-2xl font-semibold text-vc-primary">Upload PDF</h3>
+                  </div>
                   <div
-                    className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                    className={`relative border-2 border-dashed rounded-xl p-12 text-center transition-all duration-300 ${
                       dragActive
-                        ? "border-vc-secondary bg-vc-accent/20"
-                        : "border-muted-foreground/25 hover:border-vc-secondary/50"
+                        ? "border-vc-secondary bg-gradient-to-br from-vc-accent/20 to-vc-secondary/10 scale-[1.02]"
+                        : "border-muted-foreground/30 hover:border-vc-secondary/60 hover:bg-muted/20"
                     }`}
                     onDragEnter={(e) => {
                       e.preventDefault();
@@ -116,62 +127,94 @@ const LandingPage = ({ onAnalyze }: LandingPageProps) => {
                     onDragOver={(e) => e.preventDefault()}
                     onDrop={handleDrop}
                   >
-                    <Upload className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
-                    <p className="text-muted-foreground mb-4">
-                      Drag & drop your PDF here, or{" "}
-                      <label className="text-vc-secondary cursor-pointer hover:underline">
-                        browse files
-                        <input
-                          type="file"
-                          accept=".pdf"
-                          className="hidden"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) handleFileUpload(file);
-                          }}
-                        />
-                      </label>
-                    </p>
-                    <p className="text-sm text-muted-foreground">PDF files only, max 20MB</p>
+                    <div className={`transition-transform duration-300 ${dragActive ? 'scale-110' : ''}`}>
+                      <Upload className={`w-16 h-16 mx-auto mb-6 transition-colors ${
+                        dragActive ? 'text-vc-secondary' : 'text-muted-foreground'
+                      }`} />
+                      <h4 className="text-lg font-medium mb-3 text-vc-primary">
+                        Drop your research paper here
+                      </h4>
+                      <p className="text-muted-foreground mb-6 text-base">
+                        Drag & drop your PDF, or{" "}
+                        <label className="text-vc-secondary cursor-pointer hover:underline font-medium transition-colors">
+                          browse files
+                          <input
+                            type="file"
+                            accept=".pdf"
+                            className="hidden"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) handleFileUpload(file);
+                            }}
+                          />
+                        </label>
+                      </p>
+                      <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                        <FileText className="w-4 h-4" />
+                        <span>PDF files only • Max 20MB</span>
+                      </div>
+                    </div>
                   </div>
+                  
+                  {/* OR Separator */}
+                  <div className="flex items-center gap-4 my-8">
+                    <div className="flex-1 h-px bg-gradient-to-r from-transparent to-border"></div>
+                    <span className="text-sm font-medium text-muted-foreground bg-background px-3 py-1 rounded-full border">
+                      OR
+                    </span>
+                    <div className="flex-1 h-px bg-gradient-to-l from-transparent to-border"></div>
+                  </div>
+                  
+                  <p className="text-center text-sm text-muted-foreground">
+                    Use either text input or file upload - both methods work equally well
+                  </p>
                 </div>
               </div>
 
               {/* Field Selection */}
-              <div className="mt-8 space-y-4">
-                <label className="text-lg font-medium text-vc-primary">
-                  Application Area (Optional)
-                </label>
-                <p className="text-sm text-muted-foreground">
-                  Where will the end product operate?
+              <div className="mt-12 space-y-6 p-8 bg-gradient-to-r from-muted/30 to-muted/10 rounded-xl border">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-8 h-8 bg-vc-accent rounded-full flex items-center justify-center text-white font-bold text-sm">3</div>
+                  <div>
+                    <label className="text-xl font-semibold text-vc-primary block">
+                      Application Area
+                    </label>
+                    <span className="text-sm text-muted-foreground">(Optional - helps improve analysis accuracy)</span>
+                  </div>
+                </div>
+                <p className="text-muted-foreground mb-4">
+                  Select the industry where the end product will operate. This helps our AI provide more targeted market analysis and competitive insights.
                 </p>
                 <Select value={selectedField} onValueChange={setSelectedField}>
-                  <SelectTrigger className="border-2 focus:border-vc-secondary">
-                    <SelectValue placeholder="Select application area..." />
+                  <SelectTrigger className="h-12 border-2 focus:border-vc-secondary bg-white text-base">
+                    <SelectValue placeholder="Choose the target application area..." />
                   </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="ai">AI & Machine Learning</SelectItem>
-                    <SelectItem value="biotech">Biotechnology</SelectItem>
-                    <SelectItem value="energy">Energy</SelectItem>
-                    <SelectItem value="materials">Materials Science</SelectItem>
-                    <SelectItem value="quantum">Quantum Technology</SelectItem>
-                    <SelectItem value="space">Space Technology</SelectItem>
-                    <SelectItem value="climate">Climate Tech</SelectItem>
-                    <SelectItem value="other">Other</SelectItem>
+                  <SelectContent className="bg-white border-2">
+                    <SelectItem value="ai">🤖 AI & Machine Learning</SelectItem>
+                    <SelectItem value="biotech">🧬 Biotechnology</SelectItem>
+                    <SelectItem value="energy">⚡ Energy & Power Systems</SelectItem>
+                    <SelectItem value="materials">🔬 Materials Science</SelectItem>
+                    <SelectItem value="quantum">⚛️ Quantum Technology</SelectItem>
+                    <SelectItem value="space">🚀 Space Technology</SelectItem>
+                    <SelectItem value="climate">🌱 Climate Tech</SelectItem>
+                    <SelectItem value="other">📊 Other</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               {/* Analyze Button */}
-              <div className="mt-8 text-center">
+              <div className="mt-12 text-center">
                 <Button
                   onClick={handleAnalyze}
                   size="lg"
-                  className="bg-gradient-to-r from-vc-primary to-vc-secondary hover:from-vc-primary-light hover:to-vc-secondary/90 text-white px-8 py-3 text-lg"
+                  className="bg-gradient-to-r from-vc-primary to-vc-secondary hover:from-vc-primary-light hover:to-vc-secondary/90 text-white px-12 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02]"
                 >
-                  <FileText className="w-5 h-5 mr-2" />
+                  <FileText className="w-6 h-6 mr-3" />
                   Analyze Research Potential
                 </Button>
+                <p className="text-sm text-muted-foreground mt-4">
+                  Get comprehensive VC-style analysis in under 30 seconds
+                </p>
               </div>
             </CardContent>
           </Card>
