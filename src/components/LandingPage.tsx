@@ -53,8 +53,9 @@ const LandingPage = ({ onAnalyze }: LandingPageProps) => {
     <div 
       className="min-h-screen text-foreground relative"
       style={{
-        background: `var(--gradient-hero), var(--grain-texture)`,
-        backgroundBlendMode: 'overlay'
+        background: `var(--gradient-hero), var(--grain-spots), var(--grain-texture)`,
+        backgroundSize: '100% 100%, 200px 200px, 100% 100%',
+        backgroundBlendMode: 'normal, screen, multiply'
       }}
     >
       {/* Navigation */}
