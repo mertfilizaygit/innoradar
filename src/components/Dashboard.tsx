@@ -18,11 +18,13 @@ import {
   User,
   Zap,
   Network,
-  AlertCircle
+  AlertCircle,
+  LineChart
 } from "lucide-react";
 import RadarChart from "./RadarChart";
 import { useToast } from "@/hooks/use-toast";
 import { type AnalysisResult } from "@/services/claudeApi";
+import { useEffect, useState } from "react";
 
 interface DashboardProps {
   onBack: () => void;
@@ -32,6 +34,57 @@ interface DashboardProps {
 
 const Dashboard = ({ onBack, analysisResult, researchText }: DashboardProps) => {
   const { toast } = useToast();
+  
+  // Breakthrough kriterleri için state
+  const [breakthroughCriteria, setBreakthroughCriteria] = useState([
+    {
+      id: 'market-disruption',
+      title: 'Market Disruption Potential',
+      description: 'Capability to create new markets or challenge existing industry paradigms',
+      icon: Zap,
+      checked: false,
+      hoverText: 'Evaluates whether the innovation has the potential to fundamentally disrupt existing markets or create entirely new market categories.'
+    },
+    {
+      id: 'ecosystem-catalyst',
+      title: 'Innovation Ecosystem Catalyst',
+      description: 'Potential to become the foundation for broader innovation networks',
+      icon: Network,
+      checked: false,
+      hoverText: 'Assesses the innovation\'s ability to serve as a nucleus that enables and accelerates other innovations within an ecosystem.'
+    },
+    {
+      id: 'market-failure-solution',
+      title: 'Market Failure Resolution',
+      description: 'Addresses significant gaps or inefficiencies in current market solutions',
+      icon: AlertCircle,
+      checked: false,
+      hoverText: 'Determines whether the innovation tackles substantial market failures or unmet needs that existing solutions cannot adequately address.'
+    }
+  ]);
+
+  // Breakthrough kriterlerini API sonuçlarına göre ayarla, ama 3'ü birden true olmasın
+  useEffect(() => {
+    if (analysisResult.breakthroughAssessment) {
+      const { marketDisruption, ecosystemCatalyst, marketFailureSolution } = analysisResult.breakthroughAssessment;
+      
+      // Eğer 3'ü de true ise, birini false yap (örneğin ecosystemCatalyst)
+      if (marketDisruption && ecosystemCatalyst && marketFailureSolution) {
+        setBreakthroughCriteria([
+          { ...breakthroughCriteria[0], checked: true },
+          { ...breakthroughCriteria[1], checked: false }, // Birini false yapıyoruz
+          { ...breakthroughCriteria[2], checked: true }
+        ]);
+      } else {
+        // Normal durumda API'den gelen değerleri kullan
+        setBreakthroughCriteria([
+          { ...breakthroughCriteria[0], checked: marketDisruption || false },
+          { ...breakthroughCriteria[1], checked: ecosystemCatalyst || false },
+          { ...breakthroughCriteria[2], checked: marketFailureSolution || false }
+        ]);
+      }
+    }
+  }, [analysisResult.breakthroughAssessment]);
 
   const handleExport = () => {
     toast({
@@ -54,33 +107,41 @@ const Dashboard = ({ onBack, analysisResult, researchText }: DashboardProps) => 
     { category: "Impact", score: normalizeScore(analysisResult.overallScore || 0), max: 10 },
   ];
 
-  // Breakthrough Innovation Criteria
-  const breakthroughCriteria = [
-    {
-      id: 'market-disruption',
-      title: 'Market Disruption Potential',
-      description: 'Capability to create new markets or challenge existing industry paradigms',
-      icon: Zap,
-      checked: analysisResult.breakthroughAssessment?.marketDisruption || false,
-      hoverText: 'Evaluates whether the innovation has the potential to fundamentally disrupt existing markets or create entirely new market categories.'
-    },
-    {
-      id: 'ecosystem-catalyst',
-      title: 'Innovation Ecosystem Catalyst',
-      description: 'Potential to become the foundation for broader innovation networks',
-      icon: Network,
-      checked: analysisResult.breakthroughAssessment?.ecosystemCatalyst || false,
-      hoverText: 'Assesses the innovation\'s ability to serve as a nucleus that enables and accelerates other innovations within an ecosystem.'
-    },
-    {
-      id: 'market-failure-solution',
-      title: 'Market Failure Resolution',
-      description: 'Addresses significant gaps or inefficiencies in current market solutions',
-      icon: AlertCircle,
-      checked: analysisResult.breakthroughAssessment?.marketFailureSolution || false,
-      hoverText: 'Determines whether the innovation tackles substantial market failures or unmet needs that existing solutions cannot adequately address.'
+  // Daha akıllı hybrid innovation detection
+  const getResearchConnection = (text: string) => {
+    const lowerText = text.toLowerCase();
+    
+    // Daha spesifik anahtar kelimeler kullanarak daha doğru eşleştirme
+    const drugKeywords = ['pharmaceutical', 'drug discovery', 'molecular design', 'medicine development', 'clinical trials', 'therapeutic'];
+    const climateKeywords = ['quantum climate', 'weather prediction', 'environmental modeling', 'climate data', 'atmospheric'];
+    const neuralKeywords = ['neural interface', 'brain-computer', 'paralysis recovery', 'neurotechnology', 'eeg signal'];
+    
+    // Her kategori için kaç anahtar kelime eşleşiyor
+    const drugMatches = drugKeywords.filter(keyword => lowerText.includes(keyword)).length;
+    const climateMatches = climateKeywords.filter(keyword => lowerText.includes(keyword)).length;
+    const neuralMatches = neuralKeywords.filter(keyword => lowerText.includes(keyword)).length;
+    
+    // En çok eşleşen kategoriyi seç, eşitlik durumunda None döndür
+    const maxMatches = Math.max(drugMatches, climateMatches, neuralMatches);
+    
+    if (maxMatches === 0) {
+      return { name: 'Innovation Opportunity', color: 'bg-[#8b5cf6]', borderColor: 'border-[#e2e8f0]' };
     }
-  ];
+    
+    if (drugMatches === maxMatches && drugMatches > 0) {
+      return { name: 'AI-Powered Drug Discovery', color: 'bg-green-500', borderColor: 'border-green-200' };
+    }
+    
+    if (climateMatches === maxMatches && climateMatches > 0) {
+      return { name: 'Quantum Climate Modeling', color: 'bg-blue-500', borderColor: 'border-blue-200' };
+    }
+    
+    if (neuralMatches === maxMatches && neuralMatches > 0) {
+      return { name: 'Neural Interface Technology', color: 'bg-purple-500', borderColor: 'border-purple-200' };
+    }
+    
+    return { name: 'Innovation Opportunity', color: 'bg-[#8b5cf6]', borderColor: 'border-[#e2e8f0]' };
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
@@ -254,7 +315,10 @@ const Dashboard = ({ onBack, analysisResult, researchText }: DashboardProps) => 
                 </div>
 
                 <div className="bg-[#f8fafc] p-5 rounded-lg border border-[#e2e8f0]">
-                  <div className="text-sm font-medium text-[#0f172a] mb-4">Market Trends</div>
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="text-sm font-medium text-[#0f172a]">Market Trends</span>
+                    <LineChart className="w-4 h-4 text-[#8b5cf6]" />
+                  </div>
                   <div className="space-y-3">
                     {analysisResult.marketAnalysis?.trends.map((trend, index) => (
                       <div key={index} className="flex items-start gap-3 text-sm text-[#64748b]">
@@ -278,8 +342,7 @@ const Dashboard = ({ onBack, analysisResult, researchText }: DashboardProps) => 
             </CardHeader>
             <CardContent className="px-8 pb-8">
               <div className="bg-[#f8fafc] p-5 rounded-lg border border-[#e2e8f0]">
-                <div className="font-medium text-sm text-[#0f172a] mb-4 flex items-center gap-2">
-                  <div className="w-2 h-2 bg-[#8b5cf6] rounded-full"></div>
+                <div className="font-medium text-sm text-[#0f172a] mb-4">
                   Competitive Landscape
                 </div>
                 <div className="text-sm text-[#64748b] leading-relaxed">
@@ -315,8 +378,100 @@ const Dashboard = ({ onBack, analysisResult, researchText }: DashboardProps) => 
             </CardContent>
           </Card>
 
+          {/* Hybrid Innovation Opportunities */}
+          {analysisResult.hybridOpportunities && analysisResult.hybridOpportunities.length > 0 && (
+            <Card className="lg:col-span-4 shadow-xl border-0 bg-white/95 backdrop-blur-sm rounded-2xl mt-4">
+              <CardHeader className="px-8 pt-8 pb-6">
+                <CardTitle className="flex items-center gap-2 text-[#0f172a] text-base">
+                  <Lightbulb className="w-5 h-5 text-[#8b5cf6]" />
+                  Hybrid Innovation Opportunities
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="px-8 pb-8">
+                <p className="text-sm text-[#64748b] mb-8">
+                  Potential synergies with our existing breakthrough research portfolio for enhanced innovation impact:
+                </p>
+                <div className="grid md:grid-cols-2 gap-6">
+                  {analysisResult.hybridOpportunities.map((opportunity, index) => {
+                    const connection = getResearchConnection(opportunity);
+
+                    return (
+                      <div 
+                        key={index} 
+                        className={`bg-[#f8fafc] p-5 rounded-lg border ${connection.borderColor} hover:shadow-md transition-all duration-200 group relative`}
+                      >
+                        <div className="flex items-start gap-4">
+                          <div className={`${connection.color} text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium mt-0.5 flex-shrink-0`}>
+                            {index + 1}
+                          </div>
+                          <div className="flex-1">
+                            <div className="mb-3">
+                              <span className="text-xs font-medium text-[#64748b]">{connection.name}</span>
+                            </div>
+                            <p className="text-sm text-[#64748b] leading-relaxed">{opportunity}</p>
+                          </div>
+                        </div>
+                        
+                        {/* Hover tooltip for hybrid opportunities */}
+                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block z-20">
+                          <div className="bg-[#0f172a] text-white text-xs rounded-lg px-3 py-2 max-w-xs text-center">
+                            This opportunity could be combined with this previous research to create a high-potential startup venture.
+                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-[#0f172a]"></div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Risks & Barriers */}
+          <Card className="lg:col-span-4 shadow-xl border-0 bg-white/95 backdrop-blur-sm rounded-2xl mt-4">
+            <CardHeader className="px-8 pt-8 pb-6">
+              <CardTitle className="flex items-center gap-2 text-[#0f172a] text-base">
+                <AlertTriangle className="w-5 h-5 text-[#8b5cf6]" />
+                Risks & Barriers
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="px-8 pb-8">
+              <div className="grid md:grid-cols-2 gap-8">
+                <div className="space-y-4">
+                  <h4 className="font-medium text-[#0f172a] flex items-center gap-2 text-sm">
+                    <Target className="w-4 h-4 text-[#8b5cf6]" />
+                    Technical Risks
+                  </h4>
+                  <div className="space-y-3">
+                    {analysisResult.technicalFeasibility?.risks.map((risk, index) => (
+                      <div key={index} className="flex items-start gap-3 text-sm text-[#64748b]">
+                        <div className="w-1.5 h-1.5 bg-[#8b5cf6] rounded-full mt-2 flex-shrink-0"></div>
+                        {risk}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <h4 className="font-medium text-[#0f172a] flex items-center gap-2 text-sm">
+                    <AlertTriangle className="w-4 h-4 text-[#8b5cf6]" />
+                    Market Barriers
+                  </h4>
+                  <div className="space-y-3">
+                    {analysisResult.commercialPotential?.barriers.map((barrier, index) => (
+                      <div key={index} className="flex items-start gap-3 text-sm text-[#64748b]">
+                        <div className="w-1.5 h-1.5 bg-[#8b5cf6] rounded-full mt-2 flex-shrink-0"></div>
+                        {barrier}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           {/* Team & Execution - Full width */}
-          <Card className="lg:col-span-4 shadow-xl border-0 bg-white/95 backdrop-blur-sm rounded-2xl">
+          <Card className="lg:col-span-4 shadow-xl border-0 bg-white/95 backdrop-blur-sm rounded-2xl mt-4">
             <CardHeader className="px-8 pt-8 pb-6">
               <CardTitle className="flex items-center gap-2 text-[#0f172a] text-base">
                 <Users className="w-5 h-5 text-[#8b5cf6]" />
@@ -366,116 +521,6 @@ const Dashboard = ({ onBack, analysisResult, researchText }: DashboardProps) => 
               )}
             </CardContent>
           </Card>
-
-          {/* Risks & Barriers */}
-          <Card className="lg:col-span-4 shadow-xl border-0 bg-white/95 backdrop-blur-sm rounded-2xl mt-4">
-            <CardHeader className="px-8 pt-8 pb-6">
-              <CardTitle className="flex items-center gap-2 text-[#0f172a] text-base">
-                <AlertTriangle className="w-5 h-5 text-[#8b5cf6]" />
-                Risks & Barriers
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="px-8 pb-8">
-              <div className="grid md:grid-cols-2 gap-8">
-                <div className="space-y-4">
-                  <h4 className="font-medium text-[#0f172a] flex items-center gap-2 text-sm">
-                    <Target className="w-4 h-4 text-[#8b5cf6]" />
-                    Technical Risks
-                  </h4>
-                  <div className="space-y-3">
-                    {analysisResult.technicalFeasibility?.risks.map((risk, index) => (
-                      <div key={index} className="flex items-start gap-3 text-sm text-[#64748b]">
-                        <div className="w-1.5 h-1.5 bg-[#8b5cf6] rounded-full mt-2 flex-shrink-0"></div>
-                        {risk}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <h4 className="font-medium text-[#0f172a] flex items-center gap-2 text-sm">
-                    <AlertTriangle className="w-4 h-4 text-[#8b5cf6]" />
-                    Market Barriers
-                  </h4>
-                  <div className="space-y-3">
-                    {analysisResult.commercialPotential?.barriers.map((barrier, index) => (
-                      <div key={index} className="flex items-start gap-3 text-sm text-[#64748b]">
-                        <div className="w-1.5 h-1.5 bg-[#8b5cf6] rounded-full mt-2 flex-shrink-0"></div>
-                        {barrier}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Hybrid Innovation Opportunities */}
-          {analysisResult.hybridOpportunities && analysisResult.hybridOpportunities.length > 0 && (
-            <Card className="lg:col-span-4 shadow-xl border-0 bg-white/95 backdrop-blur-sm rounded-2xl mt-4">
-              <CardHeader className="px-8 pt-8 pb-6">
-                <CardTitle className="flex items-center gap-2 text-[#0f172a] text-base">
-                  <Lightbulb className="w-5 h-5 text-[#8b5cf6]" />
-                  Hybrid Innovation Opportunities
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="px-8 pb-8">
-                <p className="text-sm text-[#64748b] mb-8">
-                  Potential synergies with our existing breakthrough research portfolio for enhanced innovation impact:
-                </p>
-                <div className="grid md:grid-cols-2 gap-6">
-                  {analysisResult.hybridOpportunities.map((opportunity, index) => {
-                    // Detect which existing research is mentioned
-                    const getResearchConnection = (text: string) => {
-                      const lowerText = text.toLowerCase();
-                      
-                      if (lowerText.includes('drug') || lowerText.includes('molecular') || lowerText.includes('pharmaceutical') || lowerText.includes('medicine')) {
-                        return { name: 'AI-Powered Drug Discovery', color: 'bg-green-500', borderColor: 'border-green-200' };
-                      }
-                      if (lowerText.includes('quantum') || lowerText.includes('climate') || lowerText.includes('environmental') || lowerText.includes('weather')) {
-                        return { name: 'Quantum Climate Modeling', color: 'bg-blue-500', borderColor: 'border-blue-200' };
-                      }
-                      if (lowerText.includes('neural') || lowerText.includes('brain') || lowerText.includes('interface') || lowerText.includes('medical device')) {
-                        return { name: 'Neural Interface Technology', color: 'bg-purple-500', borderColor: 'border-purple-200' };
-                      }
-                      
-                      return { name: 'Innovation Opportunity', color: 'bg-[#8b5cf6]', borderColor: 'border-[#e2e8f0]' };
-                    };
-
-                    const connection = getResearchConnection(opportunity);
-
-                    return (
-                      <div 
-                        key={index} 
-                        className={`bg-[#f8fafc] p-5 rounded-lg border ${connection.borderColor} hover:shadow-md transition-all duration-200 group relative`}
-                      >
-                        <div className="flex items-start gap-4">
-                          <div className={`${connection.color} text-white rounded-full w-6 h-6 flex items-center justify-center text-xs font-medium mt-0.5 flex-shrink-0`}>
-                            {index + 1}
-                          </div>
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-3">
-                              <div className={`w-2 h-2 ${connection.color} rounded-full`}></div>
-                              <span className="text-xs font-medium text-[#64748b]">{connection.name}</span>
-                            </div>
-                            <p className="text-sm text-[#64748b] leading-relaxed">{opportunity}</p>
-                          </div>
-                        </div>
-                        
-                        {/* Hover tooltip for hybrid opportunities */}
-                        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 hidden group-hover:block z-20">
-                          <div className="bg-[#0f172a] text-white text-xs rounded-lg px-3 py-2 max-w-xs text-center">
-                            This opportunity could be combined with this previous research to create a high-potential startup venture.
-                            <div className="absolute top-full left-1/2 transform -translate-x-1/2 border-4 border-transparent border-t-[#0f172a]"></div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-          )}
         </div>
       </div>
     </div>
