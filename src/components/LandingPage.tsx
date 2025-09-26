@@ -1,360 +1,507 @@
-import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArrowRight, Upload, AlertCircle, CheckCircle, Beaker, FileText, Download, Star, Calendar, User } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, FileText, BarChart3, Target, TrendingUp, Edit3, Loader2, Search, Calendar, MapPin, User, ArrowRight } from "lucide-react";
-import { extractTextFromPDF } from "@/services/pdfExtractor";
 import { fakeResearchData } from "@/data/fakeResearch";
+import MaxPlanckExplorer from "./MaxPlanckExplorer";
+
+// Minimum word count for validation
+const MIN_WORD_COUNT = 10;
 
 interface LandingPageProps {
   onAnalyze: (data: { text: string; field?: string; file?: File }) => void;
   onViewFakeResearch: (researchId: string) => void;
-  isAnalyzing?: boolean;
-  hasValidApiKey?: boolean;
-  setIsAnalyzing?: (value: boolean) => void;
+  isAnalyzing: boolean;
+  hasValidApiKey: boolean;
 }
 
-const LandingPage = ({ onAnalyze, onViewFakeResearch, isAnalyzing, hasValidApiKey, setIsAnalyzing }: LandingPageProps) => {
-  const [researchText, setResearchText] = useState("");
-  const [dragActive, setDragActive] = useState(false);
-  const [inputMode, setInputMode] = useState<"text" | "upload">("text");
-  const [isPdfProcessing, setIsPdfProcessing] = useState(false);
+const LandingPage = ({ 
+  onAnalyze, 
+  onViewFakeResearch,
+  isAnalyzing,
+  hasValidApiKey
+}: LandingPageProps) => {
+  const [text, setText] = useState("");
+  const [field, setField] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [error, setError] = useState("");
+  const [inputMode, setInputMode] = useState<"text" | "file">("text");
+  const [showMaxPlanckExplorer, setShowMaxPlanckExplorer] = useState(false);
+  const [isProcessingFile, setIsProcessingFile] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const modalRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
-  const MIN_WORD_COUNT = 50;
-  const getWordCount = (text: string) => text.trim().split(/\s+/).filter(Boolean).length;
+  // Reset error when text or file changes
+  useEffect(() => {
+    setError("");
+  }, [text, file]);
 
-  const handleFileUpload = async (file: File) => {
-    if (file.type !== "application/pdf") {
-      toast({
-        title: "Invalid file type",
-        description: "Please upload a PDF file.",
-        variant: "destructive",
-      });
-      return;
+  // Auto-resize textarea
+  useEffect(() => {
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+      const scrollHeight = textareaRef.current.scrollHeight;
+      const maxHeight = 300; // Maximum height before scrolling
+      textareaRef.current.style.height = Math.min(scrollHeight, maxHeight) + 'px';
     }
-  
-    try {
-      const setLoading = setIsAnalyzing || setIsPdfProcessing;
-      setLoading(true);
-      
-      const extractedText = await extractTextFromPDF(file);
-      
-      if (!extractedText.trim()) {
-        toast({
-          title: "Empty PDF",
-          description: "No text found in the PDF file.",
-          variant: "destructive",
-        });
-        return;
-      }
-  
-      onAnalyze({ text: extractedText, file });
-    } catch (error) {
-      toast({
-        title: "PDF Processing Failed",
-        description: "Could not extract text from PDF. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      const setLoading = setIsAnalyzing || setIsPdfProcessing;
-      setLoading(false);
-    }
-  };
+  }, [text]);
 
-  const handleDrop = (e: React.DragEvent) => {
-    e.preventDefault();
-    setDragActive(false);
-    const files = e.dataTransfer.files;
-    if (files[0]) {
-      handleFileUpload(files[0]);
-    }
-  };
+  // Close modal when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+        setShowMaxPlanckExplorer(false);
+      }
+    };
 
-  const handleAnalyze = () => {
-    if (inputMode === "text") {
-      if (!researchText.trim()) {
-        toast({
-          title: "Missing research abstract",
-          description: "Please provide a research abstract to analyze.",
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      const wordCount = getWordCount(researchText);
-      if (wordCount < MIN_WORD_COUNT) {
-        toast({
-          title: "Text too short",
-          description: `Please provide at least ${MIN_WORD_COUNT} words for better analysis.`,
-          variant: "destructive",
-        });
-        return;
-      }
-      
-      onAnalyze({ text: researchText });
-      return;
+    if (showMaxPlanckExplorer) {
+      document.addEventListener('mousedown', handleClickOutside);
     }
     
-    toast({
-      title: "Upload mode active",
-      description: "Please upload a PDF to start the analysis.",
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showMaxPlanckExplorer]);
+
+  // Helper function to get word count
+  const getWordCount = (text: string): number => {
+    return text.trim().split(/\s+/).filter(Boolean).length;
+  };
+
+  // PDF text extraction function with alternative approach
+  const extractTextFromPDF = async (file: File): Promise<string> => {
+    try {
+      // Import pdfjs-dist dynamically
+      const pdfjsLib = await import('pdfjs-dist');
+      
+      // Try different worker sources
+      const workerSources = [
+        `https://unpkg.com/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.js`,
+        `https://cdn.jsdelivr.net/npm/pdfjs-dist@${pdfjsLib.version}/build/pdf.worker.min.js`,
+        `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`
+      ];
+
+      // Set worker source with fallback
+      pdfjsLib.GlobalWorkerOptions.workerSrc = workerSources[0];
+
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      
+      let fullText = '';
+      
+      // Extract text from all pages
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items
+          .map((item: any) => item.str)
+          .join(' ');
+        fullText += pageText + ' ';
+      }
+      
+      return fullText.trim();
+    } catch (error) {
+      console.error('PDF text extraction failed:', error);
+      
+      // Fallback: Try to read as text if PDF parsing fails
+      try {
+        const text = await readTextFile(file);
+        if (text.trim()) {
+          toast({
+            title: "PDF parsing failed, but text extracted",
+            description: "File was processed as text instead of PDF.",
+          });
+          return text;
+        }
+      } catch (textError) {
+        console.error('Text fallback also failed:', textError);
+      }
+      
+      throw new Error('Failed to extract text from PDF. The file might be image-based or corrupted. Please try a different file or use text input.');
+    }
+  };
+
+  // Text file reading function
+  const readTextFile = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const text = e.target?.result as string;
+        resolve(text);
+      };
+      reader.onerror = () => {
+        reject(new Error('Failed to read text file'));
+      };
+      reader.readAsText(file);
     });
   };
 
-  const currentWordCount = getWordCount(researchText);
-  const isProcessing = isAnalyzing || isPdfProcessing;
+  const handleAnalyze = async () => {
+    // Validate input based on mode
+    if (inputMode === "text") {
+      const wordCount = getWordCount(text);
+      if (wordCount < MIN_WORD_COUNT) {
+        setError(`Research abstract must be at least ${MIN_WORD_COUNT} words (currently ${wordCount})`);
+        return;
+      }
+      
+      if (!text.trim()) {
+        setError("Please enter a research abstract");
+        return;
+      }
+      
+      onAnalyze({ text, field });
+    } else {
+      if (!file) {
+        setError("Please upload a PDF or text file");
+        return;
+      }
+
+      setIsProcessingFile(true);
+      setError("");
+
+      try {
+        let extractedText = "";
+        
+        if (file.type === 'application/pdf') {
+          toast({
+            title: "Processing PDF...",
+            description: "Extracting text from your PDF file.",
+          });
+          extractedText = await extractTextFromPDF(file);
+        } else if (file.type.startsWith('text/') || file.name.endsWith('.txt')) {
+          extractedText = await readTextFile(file);
+        } else {
+          // Try to read as text anyway for .doc, .docx etc
+          try {
+            extractedText = await readTextFile(file);
+          } catch {
+            throw new Error("Unsupported file type. Please use PDF or text files.");
+          }
+        }
+
+        if (!extractedText.trim()) {
+          throw new Error("No text could be extracted from the file. The file might be empty or image-based.");
+        }
+
+        const wordCount = getWordCount(extractedText);
+        if (wordCount < MIN_WORD_COUNT) {
+          setError(`Extracted text must be at least ${MIN_WORD_COUNT} words (currently ${wordCount})`);
+          setIsProcessingFile(false);
+          return;
+        }
+
+        toast({
+          title: "File Processed Successfully!",
+          description: `Extracted ${wordCount} words from your file.`,
+        });
+
+        // Send extracted text for analysis
+        onAnalyze({ text: extractedText, field, file });
+        
+      } catch (error) {
+        console.error('File processing error:', error);
+        setError(error instanceof Error ? error.message : "Failed to process file");
+      } finally {
+        setIsProcessingFile(false);
+      }
+    }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      // Check file type - be more permissive
+      const fileType = selectedFile.type;
+      const fileName = selectedFile.name.toLowerCase();
+      
+      if (fileType !== 'application/pdf' && 
+          !fileType.startsWith('text/') && 
+          !fileName.endsWith('.txt') && 
+          !fileName.endsWith('.doc') && 
+          !fileName.endsWith('.docx')) {
+        setError("Only PDF, TXT, DOC, and DOCX files are supported");
+        setFile(null);
+        e.target.value = '';
+        return;
+      }
+      
+      setFile(selectedFile);
+      setError("");
+      
+      toast({
+        title: "File Selected",
+        description: `${selectedFile.name} has been selected for analysis`,
+      });
+    }
+  };
+
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    const droppedFile = e.dataTransfer.files[0];
+    
+    if (droppedFile) {
+      // Check file type - be more permissive
+      const fileType = droppedFile.type;
+      const fileName = droppedFile.name.toLowerCase();
+      
+      if (fileType !== 'application/pdf' && 
+          !fileType.startsWith('text/') && 
+          !fileName.endsWith('.txt') && 
+          !fileName.endsWith('.doc') && 
+          !fileName.endsWith('.docx')) {
+        setError("Only PDF, TXT, DOC, and DOCX files are supported");
+        return;
+      }
+      
+      setFile(droppedFile);
+      setError("");
+      
+      toast({
+        title: "File Dropped",
+        description: `${droppedFile.name} has been selected for analysis`,
+      });
+    }
+  };
+  
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+  };
+
+  const handleBrowseClick = () => {
+    fileInputRef.current?.click();
+  };
 
   return (
-    <div 
-      className="min-h-screen text-foreground relative"
-      style={{
-        background: `var(--gradient-hero), var(--grain-spots), var(--grain-texture)`,
-        backgroundSize: '100% 100%, 200px 200px, 100% 100%',
-        backgroundBlendMode: 'normal, screen, multiply'
-      }}
-    >
-      {/* Navigation */}
-      <nav className="fixed top-0 left-0 right-0 z-10 border-b border-border/20 bg-background/90 backdrop-blur-sm">
-        <div className="max-w-7xl mx-auto px-8 py-6 flex items-center justify-between">
-          <div className="text-lg font-semibold tracking-wide">RESEARCH-AI</div>
-          <div className="flex items-center gap-12 text-sm font-semibold tracking-wide">
-            <span className="cursor-pointer hover:text-muted-foreground transition-colors">ANALYZE</span>
-            <span className="cursor-pointer hover:text-muted-foreground transition-colors">INSIGHTS</span>
-            <span className="cursor-pointer hover:text-muted-foreground transition-colors">ABOUT</span>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
+      <div className="flex items-center justify-center px-4 py-10">
+        <div className="w-full max-w-4xl">
+          {/* Header */}
+          <div className="text-center mb-12 pt-4">
+  <h1 className="text-5xl mb-4 flex items-center justify-center font-sans tracking-tight">
+    <span className="bg-gradient-to-r from-[#8b5cf6] to-[#a855f7] bg-clip-text text-transparent mr-1 font-bold leading-none">
+    INNO
+    </span>
+    <span className="text-[#0f172a] font-light leading-none">
+    RADAR
+    </span>
+  </h1>
+            <h2 className="text-2xl font-semibold text-[#0f172a] mb-3">
+              Turn Research into Startup Insights
+            </h2>
+            <p className="text-base text-[#64748b]">
+              AI-powered VC analysis for scientific research commercialization.
+            </p>
           </div>
-        </div>
-      </nav>
 
-      {/* Hero Section - VC Criteria Kaldırıldı */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-vc-primary to-vc-secondary">
-        <div className="absolute inset-0 bg-black/20"></div>
-        <div className="relative container mx-auto px-4 py-24 text-center">
-          <h1 className="text-5xl font-bold text-white mb-6">
-            Turn Research into Startup Insights
-          </h1>
-          <p className="text-xl text-white/90 mb-8 max-w-2xl mx-auto">
-            AI-powered VC analysis for scientific research commercialization. Evaluate breakthrough potential, 
-            market opportunities, and investment readiness.
-          </p>
-          <div className="flex items-center justify-center gap-8 text-white/80">
-            <div className="flex items-center gap-2">
-              <BarChart3 className="w-5 h-5" />
-              <span>Market Analysis</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Target className="w-5 h-5" />
-              <span>Risk Assessment</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <TrendingUp className="w-5 h-5" />
-              <span>Innovation Impact</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Main Content */}
-      <div className="container mx-auto px-4 py-16">
-        <Card className="max-w-4xl mx-auto bg-background/95 backdrop-blur-sm border-border/20 shadow-2xl">
-          <CardContent className="p-12">
-            <div className="text-center mb-12">
-              <h2 className="text-3xl font-bold mb-4">Research Analysis</h2>
-              <p className="text-muted-foreground text-lg">
-                Submit your research for comprehensive VC-style evaluation
-              </p>
-            </div>
-
-            {/* Toggle Buttons */}
-            <div className="flex justify-center mb-8">
-              <div className="flex bg-muted rounded-lg p-1">
-                <Button
-                  variant={inputMode === "text" ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setInputMode("text")}
-                  className={`px-6 py-2 rounded-md transition-all ${
-                    inputMode === "text" 
-                      ? "bg-background shadow-sm" 
-                      : "hover:bg-background/50"
-                  }`}
-                >
-                  <Edit3 className="w-4 h-4 mr-2" />
-                  Text Input
-                </Button>
-                <Button
-                  variant={inputMode === "upload" ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setInputMode("upload")}
-                  className={`px-6 py-2 rounded-md transition-all ${
-                    inputMode === "upload" 
-                      ? "bg-background shadow-sm" 
-                      : "hover:bg-background/50"
-                  }`}
-                >
-                  <Upload className="w-4 h-4 mr-2" />
-                  PDF Upload
-                </Button>
+          {/* Main Card */}
+          <Card className="shadow-xl border-0 bg-white/95 backdrop-blur-sm rounded-2xl mb-32">
+            <CardHeader className="text-center pt-8 pb-6">
+              <CardTitle className="text-2xl font-semibold text-[#0f172a] mb-2">Research Analysis</CardTitle>
+            </CardHeader>
+            
+            <CardContent className="px-8 pb-8">
+              {/* Toggle Buttons */}
+              <div className="flex justify-center mb-6">
+                <div className="bg-[#f1f5f9] p-1 rounded-lg inline-flex gap-1">
+                  <Button
+                    type="button"
+                    onClick={() => setInputMode("text")}
+                    className={`px-6 py-2 rounded-md transition-all flex items-center text-sm font-medium ${
+                      inputMode === "text" 
+                        ? "bg-gradient-to-r from-[#8b5cf6] to-[#a855f7] text-white shadow-sm" 
+                        : "text-[#64748b] hover:text-[#0f172a] bg-transparent hover:bg-white/70"
+                    }`}
+                  >
+                    <FileText className="w-4 h-4 mr-2" />
+                    Text Input
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => setInputMode("file")}
+                    className={`px-6 py-2 rounded-md transition-all flex items-center text-sm font-medium ${
+                      inputMode === "file" 
+                        ? "bg-gradient-to-r from-[#8b5cf6] to-[#a855f7] text-white shadow-sm" 
+                        : "text-[#64748b] hover:text-[#0f172a] bg-transparent hover:bg-white/70"
+                    }`}
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    PDF Upload
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => setShowMaxPlanckExplorer(true)}
+                    className="px-6 py-2 rounded-md transition-all flex items-center text-sm font-medium text-[#64748b] hover:text-[#0f172a] bg-transparent hover:bg-white/70"
+                  >
+                    <Beaker className="w-4 h-4 mr-2" />
+                    Browse Max Planck Research
+                  </Button>
+                </div>
               </div>
-            </div>
 
-            {/* Input Section */}
-            <div className="max-w-2xl mx-auto space-y-8">
-              <div className="space-y-6">
+              {/* Input Content */}
+              <div className="mb-6">
                 {inputMode === "text" ? (
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <Textarea
+                      ref={textareaRef}
                       placeholder="Paste your research abstract here..."
-                      className="min-h-[120px] resize-none border-0 border-b border-border bg-transparent text-base leading-relaxed px-0 py-4 placeholder:text-muted-foreground/60 focus-visible:ring-0 focus-visible:border-foreground transition-colors"
-                      value={researchText}
-                      onChange={(e) => setResearchText(e.target.value)}
-                      disabled={isProcessing}
+                      className="min-h-[120px] max-h-[300px] resize-none border-[#e2e8f0] focus:border-[#8b5cf6] focus:ring-[#8b5cf6] bg-[#f8fafc] text-sm p-4 rounded-lg overflow-y-auto"
+                      value={text}
+                      onChange={(e) => setText(e.target.value)}
                     />
+                    <div className="text-sm text-[#64748b] text-right">
+                      {getWordCount(text)} words (minimum {MIN_WORD_COUNT} required)
+                    </div>
                   </div>
                 ) : (
-                  <div className="flex items-center justify-center">
-                    <div
-                      className={`relative border border-dashed border-border/50 rounded-lg p-12 w-full text-center transition-all duration-300 cursor-pointer ${
-                        dragActive ? "border-foreground bg-muted/10" : "hover:border-muted-foreground"
-                      } ${isProcessing ? "opacity-50 cursor-not-allowed" : ""}`}
-                      onDragEnter={(e) => {
-                        e.preventDefault();
-                        if (!isProcessing) setDragActive(true);
-                      }}
-                      onDragLeave={(e) => {
-                        e.preventDefault();
-                        setDragActive(false);
-                      }}
-                      onDragOver={(e) => e.preventDefault()}
-                      onDrop={isProcessing ? undefined : handleDrop}
-                    >
-                      {isPdfProcessing ? (
-                        <Loader2 className="w-12 h-12 mx-auto mb-4 animate-spin text-vc-primary" />
-                      ) : (
-                        <Upload className={`w-12 h-12 mx-auto mb-4 ${
-                          dragActive ? 'text-foreground' : 'text-muted-foreground'
-                        }`} />
-                      )}
-                      <p className="text-lg font-medium mb-2">
-                        {isPdfProcessing ? "Processing PDF..." : "Drop your PDF here"}
-                      </p>
-                      {!isPdfProcessing && (
-                        <>
-                          <p className="text-sm text-muted-foreground mb-4">
-                            or{" "}
-                            <label className="text-foreground cursor-pointer underline underline-offset-4 hover:text-foreground/80">
-                              browse files
-                              <input
-                                type="file"
-                                accept=".pdf"
-                                className="hidden"
-                                onChange={(e) => {
-                                  const file = e.target.files?.[0];
-                                  if (file) handleFileUpload(file);
-                                }}
-                                disabled={isProcessing}
-                              />
-                            </label>
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            Supports PDF files up to 10MB
-                          </p>
-                        </>
-                      )}
-                    </div>
+                  <div 
+                    className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+                      error ? 'border-red-300 bg-red-50' : 'border-[#8b5cf6]/30 bg-[#f8fafc] hover:bg-[#f1f5f9]'
+                    }`}
+                    onDrop={handleDrop}
+                    onDragOver={handleDragOver}
+                    onClick={handleBrowseClick}
+                  >
+                    <input 
+                      type="file" 
+                      ref={fileInputRef}
+                      className="hidden" 
+                      accept=".pdf,.txt,.doc,.docx"
+                      onChange={handleFileChange}
+                    />
+                    
+                    <Upload className="w-10 h-10 text-[#8b5cf6] mx-auto mb-3" />
+                    
+                    {file ? (
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-center gap-2 text-[#16a34a]">
+                          <CheckCircle className="w-5 h-5" />
+                          <span className="font-medium text-sm">File selected</span>
+                        </div>
+                        <p className="text-sm text-[#64748b]">{file.name}</p>
+                        {isProcessingFile && (
+                          <p className="text-xs text-[#8b5cf6]">Processing file...</p>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-[#0f172a]">
+                          Drag & drop your file here or click to browse
+                        </p>
+                        <p className="text-xs text-[#64748b]">
+                          Supports PDF, TXT, DOC, and DOCX files
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
-
+              
+              {/* Error Message */}
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 flex items-start gap-2 mb-4">
+                  <AlertCircle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
+                  <span className="text-sm text-red-600">{error}</span>
+                </div>
+              )}
+              
               {/* Scan Button */}
-              <div className="mt-12 text-center">
+              <div className="flex justify-end">
                 <Button
                   onClick={handleAnalyze}
-                  size="lg"
-                  disabled={
-                    (inputMode === "text" && currentWordCount < MIN_WORD_COUNT) || 
-                    isProcessing || 
-                    !hasValidApiKey
-                  }
-                  className="bg-gradient-to-r from-vc-primary to-vc-secondary hover:from-vc-primary-light hover:to-vc-secondary/90 text-white px-12 py-4 text-lg font-semibold shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+                  className="bg-gradient-to-r from-[#8b5cf6] to-[#a855f7] hover:from-[#7c3aed] hover:to-[#9333ea] text-white font-medium py-2 px-8 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 flex items-center justify-center text-sm"
+                  disabled={isAnalyzing || !hasValidApiKey || isProcessingFile}
                 >
-                  {isProcessing ? (
-                    <>
-                      <Loader2 className="w-6 h-6 mr-3 animate-spin" />
-                      {isPdfProcessing ? "Processing PDF..." : "Scanning..."}
-                    </>
-                  ) : (
-                    <>
-                      <Search className="w-6 h-6 mr-3" />
-                      Scan
-                    </>
-                  )}
+                  {isProcessingFile ? "Processing..." : isAnalyzing ? "Analyzing..." : "Scan"}
                 </Button>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+              
+              {!hasValidApiKey && (
+                <p className="text-sm text-amber-600 text-center flex items-center justify-center gap-2 mt-3">
+                  <AlertCircle className="w-4 h-4" />
+                  Please set up your API key to analyze research
+                </p>
+              )}
+            </CardContent>
+          </Card>
 
-        {/* Featured Research Examples */}
-        <div className="max-w-6xl mx-auto mt-16">
-          <div className="text-center mb-12">
-            <h3 className="text-2xl font-bold mb-4">Featured Research Analysis</h3>
-            <p className="text-muted-foreground">
-              Explore our comprehensive analysis of breakthrough research projects
-            </p>
-          </div>
-          
-          <div className="grid md:grid-cols-3 gap-6">
-            {fakeResearchData.map((research) => (
-              <Card 
-                key={research.id} 
-                className="group cursor-pointer hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] bg-background/95 backdrop-blur-sm border-border/20"
-                onClick={() => onViewFakeResearch(research.id)}
-              >
-                <CardContent className="p-6">
-                  <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
-                    <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded-full font-medium">
-                      {research.field}
-                    </span>
-                    <div className="flex items-center gap-1">
-                      <Calendar className="w-3 h-3" />
-                      <span>{research.publishedDate}</span>
-                    </div>
-                  </div>
-                  
-                  <h4 className="font-semibold text-lg mb-3 line-clamp-2 group-hover:text-vc-primary transition-colors">
-                    {research.title}
-                  </h4>
-                  
-                  <p className="text-sm text-muted-foreground mb-4 line-clamp-3">
-                    {research.abstract}
-                  </p>
-                  
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <User className="w-3 h-3" />
-                      <span>{research.author}</span>
-                    </div>
-                    <div className="flex items-center gap-1 text-vc-primary text-sm font-medium group-hover:gap-2 transition-all">
-                      <span>View Analysis</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </div>
-                  </div>
-                  
-                  <div className="mt-4 pt-4 border-t border-border/20">
-                    <div className="flex justify-between items-center text-xs">
-                      <span className="text-muted-foreground">Overall Score</span>
-                      <span className="font-semibold text-vc-primary">
-                        {research.analysisResult.overallScore}/100
+          {/* Earlier Analyses */}
+          <div className="mb-8">
+            <h3 className="text-xl font-semibold text-[#0f172a] text-center mb-8">
+              Earlier Analyses
+            </h3>
+            <div className="grid gap-6 md:grid-cols-3">
+              {fakeResearchData.map((research) => (
+                <Card 
+                  key={research.id}
+                  className="cursor-pointer hover:shadow-lg transition-all duration-200 bg-white/95 backdrop-blur-sm border-0 shadow-md"
+                  onClick={() => onViewFakeResearch(research.id)}
+                >
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between mb-3">
+                      <span className="text-xs font-medium px-2 py-1 bg-[#8b5cf6]/10 text-[#8b5cf6] rounded-full">
+                        {research.field}
                       </span>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                    
+                    <h4 className="font-semibold text-sm text-[#0f172a] mb-2 line-clamp-2">
+                      {research.title}
+                    </h4>
+                    
+                    <div className="flex items-center gap-4 text-xs text-[#64748b] mb-3">
+                      <div className="flex items-center gap-1">
+                        <User className="w-3 h-3" />
+                        {research.author}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Calendar className="w-3 h-3" />
+                        {new Date(research.publishedDate).toLocaleDateString()}
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-1">
+                        <Star className="w-4 h-4 text-yellow-500 fill-current" />
+                        <span className="text-sm font-medium text-[#0f172a]">
+                          {research.analysisResult.overallScore}/100
+                        </span>
+                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        className="text-[#8b5cf6] hover:text-[#7c3aed] hover:bg-[#8b5cf6]/10 text-xs"
+                      >
+                        View Analysis
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Max Planck Explorer Modal */}
+      {showMaxPlanckExplorer && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-8 z-50">
+          <div ref={modalRef} className="w-full max-w-7xl max-h-[90vh] overflow-auto">
+            <MaxPlanckExplorer
+              onSelectResearch={(research) => {
+                setText(research);
+                setShowMaxPlanckExplorer(false);
+              }}
+              onClose={() => setShowMaxPlanckExplorer(false)}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -37,8 +37,12 @@ interface AnalysisResult {
   overallScore: number;
   investmentRecommendation: string;
   keyInsights: string[];
-  nextSteps: string[];
   hybridOpportunities?: string[];
+  breakthroughAssessment: {
+    marketDisruption: boolean;
+    ecosystemCatalyst: boolean;
+    marketFailureSolution: boolean;
+  };
 }
 
 class ClaudeApiService {
@@ -100,8 +104,12 @@ class ClaudeApiService {
       "overallScore": [0-100],
       "investmentRecommendation": "STRONG BUY / BUY / HOLD / WEAK / PASS",
       "keyInsights": ["insight1", "insight2", "insight3", "insight4"],
-      "nextSteps": ["step1", "step2", "step3", "step4"],
-      "hybridOpportunities": ["opportunity1", "opportunity2"]
+      "hybridOpportunities": ["opportunity1", "opportunity2"],
+      "breakthroughAssessment": {
+        "marketDisruption": true/false,
+        "ecosystemCatalyst": true/false,
+        "marketFailureSolution": true/false
+      }
     }
     
     Scoring Guidelines:
@@ -120,14 +128,22 @@ class ClaudeApiService {
     - Default range should be 35-55 for most research abstracts
     - Only exceptional, proven teams with relevant exits should score 60+
     
+    BREAKTHROUGH ASSESSMENT CRITERIA:
+    Evaluate each criterion carefully and set to true ONLY if the innovation clearly meets the threshold:
+    
+    1. MARKET DISRUPTION (marketDisruption): Set to true if this innovation has potential to create entirely new markets or fundamentally challenge established industry paradigms. This should be rare - only for truly revolutionary innovations.
+    
+    2. ECOSYSTEM CATALYST (ecosystemCatalyst): Set to true if this innovation can serve as the foundation for broader innovation networks, enabling and accelerating other innovations within an ecosystem. Look for platform-like potential.
+    
+    3. MARKET FAILURE SOLUTION (marketFailureSolution): Set to true if this addresses a significant market failure where current solutions are inadequate, non-existent, or create substantial inefficiencies.
+    
+    Most innovations should have 0-1 criteria set to true. Only exceptional breakthrough innovations should have 2+ criteria set to true.
+    
     Focus on evaluating:
-    1. MARKET CREATION: Does this innovation have potential to create entirely new markets or fundamentally challenge established ways of doing things?
-    2. ECOSYSTEM NUCLEUS: Can this serve as the foundation for a new innovation ecosystem, attracting other innovations and players?
-    3. MARKET FAILURE SOLUTION: Does this address a significant market failure where current solutions are inadequate or non-existent?
-    4. Technical differentiation and IP potential
-    5. Business model viability and scalability
-    6. Competitive advantages and barriers to entry
-    7. Capital efficiency and exit potential
+    1. Technical differentiation and IP potential
+    2. Business model viability and scalability
+    3. Competitive advantages and barriers to entry
+    4. Capital efficiency and exit potential
     
 HYBRID OPPORTUNITIES: Compare this research with these existing breakthrough technologies and suggest 1-2 potential collaboration opportunities (if any realistic synergies exist):
 
@@ -198,12 +214,22 @@ If no meaningful synergies exist, provide general innovation opportunities inste
           throw new Error('Incomplete analysis structure');
         }
 
+        // Add default breakthrough assessment if missing
+        if (!analysis.breakthroughAssessment) {
+          analysis.breakthroughAssessment = {
+            marketDisruption: analysis.overallScore > 75,
+            ecosystemCatalyst: analysis.commercialPotential.score > 80,
+            marketFailureSolution: analysis.marketAnalysis.score > 70
+          };
+        }
+
         console.log('✅ Successfully parsed analysis:', {
           hasMarketAnalysis: !!analysis.marketAnalysis,
           hasTechnicalFeasibility: !!analysis.technicalFeasibility,
           hasCommercialPotential: !!analysis.commercialPotential,
           hasTeamAndExecution: !!analysis.teamAndExecution,
-          overallScore: analysis.overallScore
+          overallScore: analysis.overallScore,
+          breakthroughAssessment: analysis.breakthroughAssessment
         });
 
         return analysis;

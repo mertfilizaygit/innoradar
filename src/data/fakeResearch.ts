@@ -75,17 +75,16 @@ export const fakeResearchData: FakeResearchItem[] = [
         "Addresses critical market failure of slow, expensive drug development",
         "Strong IP moat with proprietary molecular interaction prediction algorithms"
       ],
-      nextSteps: [
-        "Complete Series A funding round ($8-12M) within 6 months",
-        "Establish partnerships with 2-3 major pharmaceutical companies",
-        "File additional patent applications for core algorithms",
-        "Initiate FDA pre-submission meetings for regulatory pathway"
-      ],
       hybridOpportunities: [
         "Combine with quantum computing research for accelerated molecular simulations",
         "Integrate with neural interface technology for direct brain-controlled drug design",
         "Synergy with climate modeling AI for environmental impact prediction of new drugs"
-      ]
+      ],
+      breakthroughAssessment: {
+        marketDisruption: true,
+        ecosystemCatalyst: true,
+        marketFailureSolution: true
+      }
     }
   },
   {
@@ -150,17 +149,16 @@ export const fakeResearchData: FakeResearchItem[] = [
         "Addresses critical market failure in real-time climate prediction accuracy",
         "First-mover advantage in quantum climate modeling space"
       ],
-      nextSteps: [
-        "Secure Series A funding ($20M) for quantum hardware access",
-        "Establish partnerships with quantum computing providers",
-        "Launch pilot programs with NOAA and European weather services",
-        "Develop commercial software platform for enterprise deployment"
-      ],
       hybridOpportunities: [
         "Integration with AI drug discovery for climate-aware pharmaceutical development",
         "Combine with neural interfaces for environmental monitoring through brain-computer systems",
         "Synergy with space technology for satellite-based quantum climate sensors"
-      ]
+      ],
+      breakthroughAssessment: {
+        marketDisruption: true,
+        ecosystemCatalyst: true,
+        marketFailureSolution: false
+      }
     }
   },
   {
@@ -225,17 +223,16 @@ export const fakeResearchData: FakeResearchItem[] = [
         "Addresses fundamental market failure in paralysis treatment options",
         "Non-invasive approach provides significant safety and accessibility advantages"
       ],
-      nextSteps: [
-        "Complete Series B funding ($15M) for FDA submission",
-        "Submit FDA 510(k) application within 6 months",
-        "Establish manufacturing and quality systems",
-        "Initiate reimbursement discussions with major insurers"
-      ],
       hybridOpportunities: [
         "Integration with AI drug discovery for personalized neurological treatments",
         "Combine with quantum computing for real-time neural signal processing",
         "Synergy with climate tech for environmental health monitoring in rehabilitation"
-      ]
+      ],
+      breakthroughAssessment: {
+        marketDisruption: true,
+        ecosystemCatalyst: false,
+        marketFailureSolution: true
+      }
     }
   }
 ];
